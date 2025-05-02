@@ -1,0 +1,23 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "jalali-moment": "^3.3.11",
+    "jsonwebtoken": "^9.0.2",
+    "mqtt": "^5.10.4",
+    "pg": "^8.13.3",
+    "uuid": "^11.1.0"
+  }
+}
