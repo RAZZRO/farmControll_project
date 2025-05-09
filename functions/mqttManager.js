@@ -170,15 +170,19 @@ async function initAllUserMqttClients() {
         const userMap = new Map();
 
         for (const row of res.rows) {
-            const { user_id, password, identifier } = row;
-            console.log("password is :");
+            const { user_id, mqtt_pass, identifier } = row;
+            console.log("mqtt_pass is :");
+            console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            console.log(res.rows);
             
-            console.log(password);
+            
+            
+            console.log(mqtt_pass);
             
             if (!userMap.has(user_id)) {
                 userMap.set(user_id, {
                     user_id,
-                    password,
+                    mqtt_pass,
                     identifiers: [],
                 });
             }
@@ -186,9 +190,9 @@ async function initAllUserMqttClients() {
         }
 
         for (const userData of userMap.values()) {
-            console.log(`Creating MQTT client for user ${userData.user_id} with password ${userData.password}`);
+            console.log(`Creating MQTT client for user ${userData.user_id} with mqtt_pass ${userData.mqtt_pass}`);
 
-            await createMqttClientForAllUsers(userData.user_id, userData.password, userData.identifiers);
+            await createMqttClientForAllUsers(userData.user_id, userData.mqtt_pass, userData.identifiers);
         }
 
     } catch (err) {
