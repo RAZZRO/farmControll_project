@@ -79,7 +79,6 @@ async function createMqttClientForNewUser(user_id, password, identifiers = []) {
 
     return true;
 }
-const { exec } = require('child_process');
 
 function addMQTTUser(username, password) {
     return new Promise((resolve, reject) => {
