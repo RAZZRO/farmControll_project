@@ -276,12 +276,10 @@ controller.delete_device = async (req, res) => {
 }
 
 controller.all_users = async (req, res) => {
+	console.log("request started!");
     try {
         const result = await pool.query('SELECT id, phone, first_name, last_name, start_date FROM users');
-        console.log(result.rows);
 
-        res.json(result.rows
-        );
         console.log("request copleted");
 
     } catch (err) {
