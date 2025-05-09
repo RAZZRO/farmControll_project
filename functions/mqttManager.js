@@ -82,6 +82,8 @@ async function createMqttClientForNewUser(user_id, password, identifiers = []) {
 
 function addMQTTUser(username, password) {
     return new Promise((resolve, reject) => {
+        console.log(`Adding MQTT user ${username} with password ${password}`);
+        
       const cmd = `sudo /usr/bin/mosquitto_passwd -b /etc/mosquitto/passwd ${username} ${password}`;
       exec(cmd, (error, stdout, stderr) => {
         if (error) {
@@ -93,6 +95,53 @@ function addMQTTUser(username, password) {
       });
     });
   }
+
+  async function createMqttClientForAllUsers(user_id, password, identifiers = []) {
+    console.log(user_id, password, identifiers);
+
+    if (mqttClients[user_id]) {
+        console.log(`MQTT client already exists for user ${user_id}`);
+        return false;
+    }
+
+    const client = connectMqtt({ username: user_id, password });
+    mqttClients[user_id] = { client, topics: [] };
+
+    client.on('connect', () => {
+        console.log(`MQTT connected for user ${user_id}`);
+
+        for (const identifier of identifiers) {
+            client.subscribe(identifier, (err) => {
+                if (err) {
+                    console.error(`Failed to subscribe ${user_id} to ${identifier}`, err);
+                } else {
+                    console.log(`[${user_id}] Subscribed to ${identifier}`);
+                    mqttClients[user_id].topics.push(identifier);
+                }
+            });
+        }
+    });
+
+    client.on('message', async (topic, message) => {
+        const text = message.toString();
+        const timestamp = getTodayJalali().join(' ');
+        try {
+            await pool.query(
+                `INSERT INTO messages (user_id, identifier, message, timestamp) VALUES ($1, $2, $3, $4)`,
+                [user_id, topic, text, timestamp]
+            );
+            console.log(`[${user_id}] ${topic}: ${text}`);
+        } catch (err) {
+            console.error(`Error saving message for ${user_id}:`, err.message);
+        }
+    });
+
+    client.on('error', (err) => {
+        console.error(`MQTT error for ${user_id}:`, err.message);
+    });
+
+    return true;
+}
 
 
 async function initAllUserMqttClients() {
@@ -118,7 +167,7 @@ async function initAllUserMqttClients() {
         }
 
         for (const userData of userMap.values()) {
-            await createMqttClientForNewUser(userData.user_id, userData.password, userData.identifiers);
+            await createMqttClientForAllUsers(userData.user_id, userData.password, userData.identifiers);
         }
 
     } catch (err) {
