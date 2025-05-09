@@ -159,15 +159,22 @@ async function createMqttClientForAllUsers(user_id, password, identifiers = []) 
 async function initAllUserMqttClients() {
     try {
         const res = await pool.query(`
-        SELECT u.id AS user_id,u.mqtt_pass, m.identifier
+        SELECT u.id AS user_id, u.mqtt_pass, m.identifier
         FROM users u
         JOIN mqtt m ON u.id = m.user_id
       `);
+    //   SELECT u.id AS user_id, u.mqtt_pass AS password, m.identifier
+    //   FROM users u
+    //   JOIN mqtt m ON u.id = m.user_id
 
         const userMap = new Map();
 
         for (const row of res.rows) {
             const { user_id, password, identifier } = row;
+            console.log("password is :");
+            
+            console.log(password);
+            
             if (!userMap.has(user_id)) {
                 userMap.set(user_id, {
                     user_id,
