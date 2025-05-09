@@ -32,8 +32,10 @@ controller.new_user = async (req, res) => {
     try {
         const password = Math.random().toString(36).slice(-10);
         const hashedPassword = await bcrypt.hash(password, 10);
+        const mqtt_pass = Math.random().toString(36).slice(-10);
 
-        const sql = 'SELECT * FROM create_user_with_device($1, $2, $3, $4, $5, $6, $7)';
+
+        const sql = 'SELECT * FROM create_user_with_device($1, $2, $3, $4, $5, $6, $7, $8)';
         const values = [
             data.nationalCode,
             data.phone,
@@ -42,6 +44,7 @@ controller.new_user = async (req, res) => {
             todayJalali,
             hashedPassword,
             data.deviceName,
+            mqtt_pass,
         ];
         // console.log(values);
 
@@ -51,10 +54,9 @@ controller.new_user = async (req, res) => {
         if (result.rows.length > 0) {
             const nationalCode = data.nationalCode;
             const identifiers = [result.rows[0].identifier];
-            console.log(identifiers);
 
 
-            const result2 = await mqttManager.createMqttClientForNewUser(nationalCode, password, identifiers);
+            const result2 = await mqttManager.createMqttClientForNewUser(nationalCode, mqtt_pass, identifiers);
 
             if (result2) {
                 res.status(201).json({ nationalCode, password, });

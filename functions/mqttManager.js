@@ -1,6 +1,8 @@
 const pool = require('../config/db');
 const connectMqtt = require('../config/mqtt');
 const getTodayJalali = require('../config/getDate');
+const { exec } = require('child_process');
+
 
 
 
@@ -29,6 +31,13 @@ async function createMqttClientForNewUser(user_id, password, identifiers = []) {
     
     if (mqttClients[user_id]) {
         console.log(`MQTT client already exists for user ${user_id}`);
+        return false;
+    }
+
+    const result = await addMQTTUser(user_id, password);
+
+    if (!result) {
+        console.error(`Failed to add MQTT user for user ${user_id}`);
         return false;
     }
 
@@ -71,12 +80,23 @@ async function createMqttClientForNewUser(user_id, password, identifiers = []) {
     return true;
 }
 
+function addMQTTUser(username, password) {
+    const cmd = `sudo mosquitto_passwd -b /etc/mosquitto/passwd ${username} ${password}`;
+    exec(cmd, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`خطا: ${error.message}`);
+        return false;
+      }
+      console.log(`خروجی: ${stdout}`);
+      return true;
+    });
+  }
 
 
 async function initAllUserMqttClients() {
     try {
         const res = await pool.query(`
-        SELECT u.id AS user_id, m.identifier
+        SELECT u.id AS user_id,u.mqtt_pass, m.identifier
         FROM users u
         JOIN mqtt m ON u.id = m.user_id
       `);
@@ -84,11 +104,11 @@ async function initAllUserMqttClients() {
         const userMap = new Map();
 
         for (const row of res.rows) {
-            const { user_id, identifier } = row;
+            const { user_id,password, identifier } = row;
             if (!userMap.has(user_id)) {
                 userMap.set(user_id, {
                     user_id,
-                    password: '1234',
+                    password,
                     identifiers: [],
                 });
             }
