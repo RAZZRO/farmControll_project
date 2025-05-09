@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 // Routes
 const userRoutes = require('./routers/users.router');
 const adminRoutes = require('./routers/admin.router');
+const mqttManager = require('./functions/mqttManager');
 //const dataRoutes = require('./routes/data');
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use('/user', userRoutes);
 app.use('/admin', adminRoutes);
 //app.use('/data', dataRoutes);
+mqttManager.initAllUserMqttClients();
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

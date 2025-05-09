@@ -4,13 +4,26 @@ const getTodayJalali = require('../config/getDate');
 const client = require('../config/mqtt');
 const bcrypt = require('bcrypt');
 
+const mqttManager = require('../functions/mqttManager');
+
+
+
 //const jwt = require('jsonwebtoken');
 //const bcrypt = require('bcrypt');
 //const secretKey = 'secretKey';
 
 const controller = {};
 
+controller.send_message = async (req, res) => {
+    const data = req.body;
 
+    const clientEntry = mqttManager.publishMessage(data.nationalCode, data.identifier, "test");
+    return res.status(200).json();
+
+    //     clientEntry.publish(JSON.stringify({ temp: 28.5 }));
+
+
+}
 
 controller.new_user = async (req, res) => {
     const data = req.body;
@@ -30,16 +43,30 @@ controller.new_user = async (req, res) => {
             hashedPassword,
             data.deviceName,
         ];
-        console.log(values);
+        // console.log(values);
 
 
         const result = await pool.query(sql, values);
 
         if (result.rows.length > 0) {
+            const nationalCode = data.nationalCode;
+            const identifiers = [result.rows[0].identifier];
+            console.log(identifiers);
 
-            const username = data.nationalCode
+
+            const result2 = await mqttManager.createMqttClientForNewUser(nationalCode, password, identifiers);
+
+            if (result2) {
+                res.status(201).json({ nationalCode, password, });
+            } else {
+                res.status(200).json({ message: 'User registered but MQTT client failed to create' });
+            }
             //console.log("Username:", username);
-            return res.status(200).json({ username, password });
+            // const { client, publish } = createMqttClient(username, password, result.rows[0].username);
+            //publish(JSON.stringify({ temp: 26.5, humidity: 40 }));
+
+
+            //return res.status(200).json({ username, password, });
         } else {
             console.log("User not inserted");
             return res.status(400).json({ message: 'User registration failed' });
@@ -48,6 +75,48 @@ controller.new_user = async (req, res) => {
         if (err.message.includes('User already exists')) {
             return res.status(400).json({ message: 'User already exists' });
         }
+        console.error(err.stack);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+
+controller.new_device = async (req, res) => {
+    console.log("new topic");
+    const data = req.body;
+    console.log(data);
+    try {
+        let text = 'SELECT * FROM users WHERE id = $1';
+        let values = [data.nationalCode];
+
+        const result = await pool.query(text, values);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'کد ملی در سیستم ثبت نشده است' });
+        }
+        const [todayJalali, time] = getTodayJalali();
+
+        const query = 'INSERT INTO mqtt (user_id, start_date,device_name) VALUES ($1,$2,$3) RETURNING *';
+        const mqttValues = [
+            data.nationalCode,
+            `${todayJalali}`,
+            data.deviceName
+        ];
+
+        const result2 = await pool.query(query, mqttValues);
+        if (result2.rowCount > 0) {
+            const identifier = result2.rows[0].identifier;
+            const result = await mqttManager.addTopicToExistingMqttClient(data.nationalCode, identifier);
+
+            if (result) {
+                res.status(200).json({ identifier });
+            } else {
+                res.status(404).json({ error: 'MQTT client failed to add topic' });
+            }
+        } else {
+            console.log("MQTT Record Not Inserted");
+            res.status(400).json({ message: 'MQTT registration failed' });
+        }
+    } catch (err) {
         console.error(err.stack);
         res.status(500).json({ message: 'Internal Server Error' });
     }
@@ -94,7 +163,7 @@ controller.edit_device = async (req, res) => {
 
     try {
 
-        let text = 'UPDATE mqtt SET  device_name = $2  WHERE username = $1 RETURNING username';
+        let text = 'UPDATE mqtt SET  device_name = $2  WHERE identifier = $1 RETURNING identifier';
 
         let values = [
             data.identifier,
@@ -206,50 +275,11 @@ controller.delete_device = async (req, res) => {
 
 }
 
-
-controller.new_topic = async (req, res) => {
-    const data = req.body;
-
-    try {
-
-        let text = 'SELECT * FROM users WHERE id = $1';
-        let values = [
-            data.nationalCode,
-        ];
-
-        const result = await pool.query(text, values);
-
-        if (result.rowCount === 0) {
-            return res.status(404).json({ message: 'کد ملی در سیستم ثبت نشده است' });
-        }
-        console.log(result.rowCount);
-        const [todayJalali, time] = getTodayJalali();
-
-        const query = 'INSERT INTO mqtt (user_id, start_date,device_name) VALUES ($1,$2,$3) RETURNING username';
-        const mqttValues = [
-            data.nationalCode,
-            `${todayJalali}`,
-            data.deviceName
-        ];
-
-        const result2 = await pool.query(query, mqttValues);
-        if (result2.rowCount > 0) {
-            const username = result2.rows[0].username;
-            console.log("Username:", username);
-            res.json({ username });
-        } else {
-            console.log("MQTT Record Not Inserted");
-            res.status(400).json({ message: 'MQTT registration failed' });
-        }
-    } catch (err) {
-        console.error(err.stack);
-        res.status(500).json({ message: 'Internal Server Error' });
-    }
-};
-
 controller.all_users = async (req, res) => {
     try {
         const result = await pool.query('SELECT id, phone, first_name, last_name, start_date FROM users');
+        console.log(result.rows);
+
         res.json(result.rows
         );
         console.log("request copleted");
@@ -262,7 +292,6 @@ controller.all_users = async (req, res) => {
         });
     }
 };
-
 
 controller.all_topics = async (req, res) => {
 

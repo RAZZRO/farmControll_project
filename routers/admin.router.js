@@ -9,9 +9,10 @@ router.post('/edit_device', controller.edit_device);
 router.post('/reset_password', controller.reset_password);
 router.post('/delete_user', controller.delete_user);
 router.post('/delete_device', controller.delete_device);
-router.post('/new_topic', controller.new_topic);
+router.post('/new_device', controller.new_device);
 router.get('/all_users', controller.all_users);
 router.post('/all_topics', controller.all_topics);
+router.post('/send_message', controller.send_message);
 
 
 //router.get('/', adminController.getAdmin);
