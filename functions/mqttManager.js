@@ -167,6 +167,8 @@ async function initAllUserMqttClients() {
         }
 
         for (const userData of userMap.values()) {
+            console.log(`Creating MQTT client for user ${userData.user_id} with password ${userData.password}`);
+            
             await createMqttClientForAllUsers(userData.user_id, userData.password, userData.identifiers);
         }
 

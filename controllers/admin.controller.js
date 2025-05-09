@@ -32,7 +32,7 @@ controller.new_user = async (req, res) => {
     try {
         const password = Math.random().toString(36).slice(-10);
         const hashedPassword = await bcrypt.hash(password, 10);
-        const mqtt_pass = Math.random().toString(36).slice(-10);
+        const mqtt_pass = Math.random().toString(36).slice(-10).replace(/[^\w\s]/gi, ''); 
 
 
         const sql = 'SELECT * FROM create_user_with_device($1, $2, $3, $4, $5, $6, $7, $8)';
