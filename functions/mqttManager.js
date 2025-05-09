@@ -27,8 +27,8 @@ function publishMessage(user_id, topic, message) {
 }
 
 async function createMqttClientForNewUser(user_id, password, identifiers = []) {
-    console.log(user_id, password, identifiers);    
-    
+    console.log(user_id, password, identifiers);
+
     if (mqttClients[user_id]) {
         console.log(`MQTT client already exists for user ${user_id}`);
         return false;
@@ -81,14 +81,16 @@ async function createMqttClientForNewUser(user_id, password, identifiers = []) {
 }
 
 function addMQTTUser(username, password) {
-    const cmd = `sudo mosquitto_passwd -b /etc/mosquitto/passwd ${username} ${password}`;
-    exec(cmd, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`خطا: ${error.message}`);
-        return false;
-      }
-      console.log(`خروجی: ${stdout}`);
-      return true;
+    return new Promise((resolve, reject) => {
+      const cmd = `sudo /usr/bin/mosquitto_passwd -b /etc/mosquitto/passwd ${username} ${password}`;
+      exec(cmd, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`خطا: ${error.message}`);
+          return resolve(false); // reject نکن تا جلوی crash رو بگیری
+        }
+        console.log(`خروجی: ${stdout}`);
+        resolve(true);
+      });
     });
   }
 
@@ -104,7 +106,7 @@ async function initAllUserMqttClients() {
         const userMap = new Map();
 
         for (const row of res.rows) {
-            const { user_id,password, identifier } = row;
+            const { user_id, password, identifier } = row;
             if (!userMap.has(user_id)) {
                 userMap.set(user_id, {
                     user_id,
