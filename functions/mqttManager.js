@@ -9,10 +9,14 @@ const { exec } = require('child_process');
 const mqttClients = {};
 
 function publishMessage(user_id, topic, message) {
-
     const userClient = mqttClients[user_id];
     if (!userClient) {
         console.error(`No MQTT client found for user ${user_id}`);
+        return;
+    }
+
+    if (!userClient.topics.includes(topic)) {
+        console.warn(`User ${user_id} is not allowed to publish to topic ${topic}`);
         return;
     }
 
@@ -23,8 +27,8 @@ function publishMessage(user_id, topic, message) {
             console.log(`Published to ${topic}: ${message}`);
         }
     });
-
 }
+
 
 async function createMqttClientForNewUser(user_id, password, identifiers = []) {
     console.log(user_id, password, identifiers);
