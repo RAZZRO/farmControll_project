@@ -87,22 +87,29 @@ function removeUserMqttClient(user_id) {
         return false;
     }
 
-    for (const topic of userClient.topics) {
-        userClient.client.unsubscribe(topic, (err) => {
-            if (err) console.error(`Error unsubscribing ${user_id} from ${topic}:`, err);
+    // Unsubscribe only if client is connected
+    if (userClient.client.connected) {
+        for (const topic of userClient.topics) {
+            userClient.client.unsubscribe(topic, (err) => {
+                if (err) {
+                    console.error(`Error unsubscribing ${user_id} from ${topic}:`, err);
+                }
+            });
+        }
+
+        // End MQTT connection only if still active
+        userClient.client.end(true, () => {
+            console.log(`MQTT connection closed for user ${user_id}`);
         });
+    } else {
+        console.warn(`Client already disconnected for user ${user_id}, skipping unsubscribe and end.`);
     }
 
-    // End MQTT connection
-    userClient.client.end(true, () => {
-        console.log(`MQTT connection closed for user ${user_id}`);
-    });
-
-    // Remove from mqttClients map
+    // Remove from map
     delete mqttClients[user_id];
     console.log(`Removed ${user_id} from mqttClients`);
 
-    // Remove from mosquitto passwd
+    // Remove MQTT user from passwd
     const cmd = `sudo /usr/bin/mosquitto_passwd -D /etc/mosquitto/passwd ${user_id}`;
     exec(cmd, (error, stdout, stderr) => {
         if (error) {
@@ -124,6 +131,7 @@ function removeUserMqttClient(user_id) {
 
     return true;
 }
+
 
 
 function addMQTTUser(username, password) {
