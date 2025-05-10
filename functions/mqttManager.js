@@ -12,12 +12,12 @@ function publishMessage(user_id, topic, message) {
     const userClient = mqttClients[user_id];
     if (!userClient) {
         console.error(`No MQTT client found for user ${user_id}`);
-        return;
+        return false;
     }
 
     if (!userClient.topics.includes(topic)) {
         console.warn(`User ${user_id} is not allowed to publish to topic ${topic}`);
-        return;
+        return false;
     }
 
     userClient.client.publish(topic, message, (err) => {

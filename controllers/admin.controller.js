@@ -18,6 +18,9 @@ controller.send_message = async (req, res) => {
     const data = req.body;
 
     const clientEntry = mqttManager.publishMessage(data.nationalCode, data.identifier, "test");
+    if (!clientEntry) {
+        return res.status(400).json({ message: 'Failed to publish message' });
+    }
     return res.status(200).json();
 
     //     clientEntry.publish(JSON.stringify({ temp: 28.5 }));
