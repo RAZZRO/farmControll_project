@@ -25,6 +25,7 @@ function publishMessage(user_id, topic, message) {
             console.error(`Failed to publish message to ${topic}:`, err);
         } else {
             console.log(`Published to ${topic}: ${message}`);
+            return true
         }
     });
 }
