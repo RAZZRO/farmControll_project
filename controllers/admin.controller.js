@@ -36,7 +36,7 @@ controller.new_user = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         const mqtt_pass = Math.random().toString(36).slice(-10).replace(/[^\w\s]/gi, '');
 
-        await client.query('BEGIN'); 
+        await client.query('BEGIN');
 
         const sql = 'SELECT * FROM create_user_with_device($1, $2, $3, $4, $5, $6, $7, $8)';
         const values = [
@@ -79,7 +79,7 @@ controller.new_user = async (req, res) => {
         console.error('error in creating user:', err.message);
         return res.status(500).json({ message: 'server error' });
     } finally {
-        client.release(); 
+        client.release();
     }
 };
 
@@ -233,7 +233,7 @@ controller.reset_password = async (req, res) => {
 controller.delete_user = async (req, res) => {
     const { nationalCode, password, identifiers } = req.body;
 
-    const client = await pool.connect(); 
+    const client = await pool.connect();
 
     try {
         await client.query('BEGIN');
@@ -268,7 +268,7 @@ controller.delete_user = async (req, res) => {
         });
 
     } finally {
-        client.release(); 
+        client.release();
     }
 };
 
@@ -306,6 +306,7 @@ controller.all_users = async (req, res) => {
     console.log("request started!");
     try {
         const result = await pool.query('SELECT id, phone, first_name, last_name, start_date FROM users');
+        res.json(result.rows);
 
         console.log("request copleted");
 
