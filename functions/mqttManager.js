@@ -9,26 +9,30 @@ const { exec } = require('child_process');
 const mqttClients = {};
 
 function publishMessage(user_id, topic, message) {
-    const userClient = mqttClients[user_id];
-    if (!userClient) {
-        console.error(`No MQTT client found for user ${user_id}`);
-        return false;
-    }
-
-    if (!userClient.topics.includes(topic)) {
-        console.warn(`User ${user_id} is not allowed to publish to topic ${topic}`);
-        return false;
-    }
-
-    userClient.client.publish(topic, message, (err) => {
-        if (err) {
-            console.error(`Failed to publish message to ${topic}:`, err);
-        } else {
-            console.log(`Published to ${topic}: ${message}`);
-            return true;
+    return new Promise((resolve, reject) => {
+        const userClient = mqttClients[user_id];
+        if (!userClient) {
+            console.error(`No MQTT client found for user ${user_id}`);
+            return resolve(false);
         }
+
+        if (!userClient.topics.includes(topic)) {
+            console.warn(`User ${user_id} is not allowed to publish to topic ${topic}`);
+            return resolve(false);
+        }
+
+        userClient.client.publish(topic, message, (err) => {
+            if (err) {
+                console.error(`Failed to publish message to ${topic}:`, err);
+                return resolve(false);
+            } else {
+                console.log(`Published to ${topic}: ${message}`);
+                return resolve(true);
+            }
+        });
     });
 }
+
 
 
 async function createMqttClientForNewUser(user_id, password, identifiers = []) {
