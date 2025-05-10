@@ -29,11 +29,14 @@ controller.new_user = async (req, res) => {
     const data = req.body;
     const [todayJalali, time] = getTodayJalali();
 
+    const client = await pool.connect();
+
     try {
         const password = Math.random().toString(36).slice(-10);
         const hashedPassword = await bcrypt.hash(password, 10);
-        const mqtt_pass = Math.random().toString(36).slice(-10).replace(/[^\w\s]/gi, ''); 
+        const mqtt_pass = Math.random().toString(36).slice(-10).replace(/[^\w\s]/gi, '');
 
+        await client.query('BEGIN'); 
 
         const sql = 'SELECT * FROM create_user_with_device($1, $2, $3, $4, $5, $6, $7, $8)';
         const values = [
@@ -46,47 +49,44 @@ controller.new_user = async (req, res) => {
             data.deviceName,
             mqtt_pass,
         ];
-        // console.log(values);
 
+        const result = await client.query(sql, values);
 
-        const result = await pool.query(sql, values);
-
-        if (result.rows.length > 0) {
-            const nationalCode = data.nationalCode;
-            const identifiers = [result.rows[0].identifier];
-
-
-            const result2 = await mqttManager.createMqttClientForNewUser(nationalCode, mqtt_pass, identifiers);
-
-            if (result2) {
-                res.status(201).json({ nationalCode, password, });
-            } else {
-                res.status(200).json({ message: 'User registered but MQTT client failed to create' });
-            }
-            //console.log("Username:", username);
-            // const { client, publish } = createMqttClient(username, password, result.rows[0].username);
-            //publish(JSON.stringify({ temp: 26.5, humidity: 40 }));
-
-
-            //return res.status(200).json({ username, password, });
-        } else {
-            console.log("User not inserted");
-            return res.status(400).json({ message: 'User registration failed' });
+        if (result.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ message: 'failed to create user' });
         }
+
+        const nationalCode = data.nationalCode;
+        const identifiers = [result.rows[0].identifier];
+
+        const mqttCreated = await mqttManager.createMqttClientForNewUser(nationalCode, mqtt_pass, identifiers);
+
+        if (!mqttCreated) {
+            await client.query('ROLLBACK');
+            return res.status(500).json({ message: 'failed to create MQTT client' });
+        }
+
+        await client.query('COMMIT');
+
+        return res.status(201).json({ nationalCode, password });
+
     } catch (err) {
+        await client.query('ROLLBACK');
         if (err.message.includes('User already exists')) {
             return res.status(400).json({ message: 'User already exists' });
         }
-        console.error(err.stack);
-        res.status(500).json({ message: 'Internal Server Error' });
+        console.error('error in creating user:', err.message);
+        return res.status(500).json({ message: 'server error' });
+    } finally {
+        client.release(); 
     }
 };
 
 
+
 controller.new_device = async (req, res) => {
-    console.log("new topic");
     const data = req.body;
-    console.log(data);
     try {
         let text = 'SELECT * FROM users WHERE id = $1';
         let values = [data.nationalCode];
@@ -115,11 +115,9 @@ controller.new_device = async (req, res) => {
                 res.status(404).json({ error: 'MQTT client failed to add topic' });
             }
         } else {
-            console.log("MQTT Record Not Inserted");
             res.status(400).json({ message: 'MQTT registration failed' });
         }
     } catch (err) {
-        console.error(err.stack);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };
@@ -233,42 +231,69 @@ controller.reset_password = async (req, res) => {
 }
 
 controller.delete_user = async (req, res) => {
-    const data = req.body;
+    const { nationalCode, password, identifiers } = req.body;
+
+    const client = await pool.connect(); 
 
     try {
+        await client.query('BEGIN');
 
-        let text = 'SELECT delete_user_and_mqtt($1) AS message';
+        const mqttDeleted = await mqttManager.removeUserMqttClient(nationalCode);
 
-        let values = [data.nationalCode];
-        console.log('Query:', text);
-        console.log('Values:', values);
+        if (!mqttDeleted) {
+            await client.query('ROLLBACK');
+            return res.status(500).json({ error: 'Failed to delete MQTT client' });
+        }
 
-        const result = await pool.query(text, values);
-        console.log(result.rows[0].message);
-        res.status(200).json({ message: 'delete done succesfully' });
+        const text = 'SELECT delete_user_and_mqtt($1) AS message';
+        const values = [nationalCode];
+        const result = await client.query(text, values);
 
+        const message = result.rows[0].message;
+        console.log(message);
+
+        await client.query('COMMIT');
+        return res.status(200).json({ message: 'User and MQTT client deleted successfully' });
 
     } catch (err) {
-        console.error('error in deleting', err);
-        res.json({ message: err })
-    }
+        console.error('failed to delete data from database:', err.message);
 
-}
+        await client.query('ROLLBACK');
+
+        await createMqttClientForNewUser(nationalCode, password, identifiers);
+
+        return res.status(500).json({
+            error: 'Failed to delete data from database, MQTT client recreated',
+            detail: err.message
+        });
+
+    } finally {
+        client.release(); 
+    }
+};
+
+
 controller.delete_device = async (req, res) => {
     const data = req.body;
 
     try {
 
         let text = 'SELECT delete_device($1) AS message';
-
         let values = [data.identifier];
-        console.log('Query:', text);
-        console.log('Values:', values);
-
         const result = await pool.query(text, values);
-        console.log(result.rows[0].message);
-        res.status(200).json({ message: 'delete done succesfully' });
+        const resData = result.rows[0]?.message;
 
+        if (resData.success) {
+            const nationalCode = resData.user_id;
+            const identifier = resData.identifier;
+            const result2 = await mqttManager.removeTopicFromMqttClient(nationalCode, data.identifier);
+
+            if (result2) {
+                res.status(200).json({ identifier });
+            } else {
+                res.status(404).json({ error: 'MQTT client failed to add topic' });
+            }
+        }
 
     } catch (err) {
         console.error('error in deleting', err);
@@ -278,7 +303,7 @@ controller.delete_device = async (req, res) => {
 }
 
 controller.all_users = async (req, res) => {
-	console.log("request started!");
+    console.log("request started!");
     try {
         const result = await pool.query('SELECT id, phone, first_name, last_name, start_date FROM users');
 

@@ -80,6 +80,52 @@ async function createMqttClientForNewUser(user_id, password, identifiers = []) {
     return true;
 }
 
+function removeUserMqttClient(user_id) {
+    const userClient = mqttClients[user_id];
+    if (!userClient) {
+        console.error(`MQTT client not found for user ${user_id}`);
+        return false;
+    }
+
+    for (const topic of userClient.topics) {
+        userClient.client.unsubscribe(topic, (err) => {
+            if (err) console.error(`Error unsubscribing ${user_id} from ${topic}:`, err);
+        });
+    }
+
+    // End MQTT connection
+    userClient.client.end(true, () => {
+        console.log(`MQTT connection closed for user ${user_id}`);
+    });
+
+    // Remove from mqttClients map
+    delete mqttClients[user_id];
+    console.log(`Removed ${user_id} from mqttClients`);
+
+    // Remove from mosquitto passwd
+    const cmd = `sudo /usr/bin/mosquitto_passwd -D /etc/mosquitto/passwd ${user_id}`;
+    exec(cmd, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error removing MQTT user ${user_id}:`, error.message);
+        } else {
+            console.log(`Removed MQTT user ${user_id} from passwd`);
+
+            // Restart Mosquitto
+            const restartCmd = 'kill -HUP $(pidof mosquitto)';
+            exec(restartCmd, (restartError, restartStdout, restartStderr) => {
+                if (restartError) {
+                    console.error(`Error restarting Mosquitto: ${restartError.message}`);
+                } else {
+                    console.log(`Mosquitto restarted after user removal`);
+                }
+            });
+        }
+    });
+
+    return true;
+}
+
+
 function addMQTTUser(username, password) {
     return new Promise((resolve, reject) => {
         console.log(`Adding MQTT user ${username} with password ${password}`);
@@ -94,7 +140,7 @@ function addMQTTUser(username, password) {
             console.log(`Output: ${stdout}`);
             
             // Restart Mosquitto service to apply changes
-            const restartCmd = 'sudo systemctl restart mosquitto';
+            const restartCmd = 'kill -HUP $(pidof mosquitto)';
             exec(restartCmd, (restartError, restartStdout, restartStderr) => {
                 if (restartError) {
                     console.error(`Error restarting Mosquitto: ${restartError.message}`);
@@ -224,13 +270,40 @@ async function addTopicToExistingMqttClient(user_id, newIdentifier) {
     return true;
 }
 
+function removeTopicFromMqttClient(user_id, identifier) {
+    const userClient = mqttClients[user_id];
+    if (!userClient) {
+        console.error(`MQTT client not found for user ${user_id}`);
+        return false;
+    }
+
+    if (!userClient.topics.includes(identifier)) {
+        console.log(`User ${user_id} is not subscribed to ${identifier}`);
+        return true;
+    }
+
+    userClient.client.unsubscribe(identifier, (err) => {
+        if (err) {
+            console.error(`Failed to unsubscribe ${user_id} from ${identifier}`, err);
+        } else {
+            userClient.topics = userClient.topics.filter(topic => topic !== identifier);
+            console.log(`[${user_id}] Unsubscribed from topic ${identifier}`);
+        }
+    });
+
+    return true;
+}
+
+
 
 
 
 module.exports = {
     initAllUserMqttClients,
     createMqttClientForNewUser,
+    removeUserMqttClient,
     addTopicToExistingMqttClient,
+    removeTopicFromMqttClient,
     publishMessage,
     mqttClients
 };
