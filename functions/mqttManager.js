@@ -80,6 +80,7 @@ async function createMqttClientForNewUser(user_id, password, identifiers = []) {
     return true;
 }
 
+
 function removeUserMqttClient(user_id) {
     const userClient = mqttClients[user_id];
     if (!userClient) {
@@ -87,50 +88,67 @@ function removeUserMqttClient(user_id) {
         return false;
     }
 
-    // Unsubscribe only if client is connected
-    if (userClient.client.connected) {
-        for (const topic of userClient.topics) {
-            userClient.client.unsubscribe(topic, (err) => {
-                if (err) {
-                    console.error(`Error unsubscribing ${user_id} from ${topic}:`, err);
-                }
+    const unsubscribeFromTopics = () => {
+        const promises = userClient.topics.map(topic => {
+            return new Promise((resolve, reject) => {
+                userClient.client.unsubscribe(topic, (err) => {
+                    if (err) {
+                        console.error(`Error unsubscribing ${user_id} from ${topic}:`, err);
+                        return reject(err);
+                    }
+                    resolve();
+                });
             });
-        }
-
-        // End MQTT connection only if still active
-        userClient.client.end(true, () => {
-            console.log(`MQTT connection closed for user ${user_id}`);
         });
-    } else {
-        console.warn(`Client already disconnected for user ${user_id}, skipping unsubscribe and end.`);
-    }
 
-    // Remove from map
-    delete mqttClients[user_id];
-    console.log(`Removed ${user_id} from mqttClients`);
+        return Promise.allSettled(promises);
+    };
 
-    // Remove MQTT user from passwd
-    const cmd = `sudo /usr/bin/mosquitto_passwd -D /etc/mosquitto/passwd ${user_id}`;
-    exec(cmd, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error removing MQTT user ${user_id}:`, error.message);
-        } else {
-            console.log(`Removed MQTT user ${user_id} from passwd`);
-
-            // Restart Mosquitto
-            const restartCmd = 'kill -HUP $(pidof mosquitto)';
-            exec(restartCmd, (restartError, restartStdout, restartStderr) => {
-                if (restartError) {
-                    console.error(`Error restarting Mosquitto: ${restartError.message}`);
-                } else {
-                    console.log(`Mosquitto restarted after user removal`);
-                }
+    const endClientConnection = () => {
+        return new Promise((resolve) => {
+            userClient.client.end(true, () => {
+                console.log(`MQTT connection closed for user ${user_id}`);
+                resolve();
             });
+        });
+    };
+
+    const removeFromPasswd = () => {
+        const cmd = `sudo /usr/bin/mosquitto_passwd -D /etc/mosquitto/passwd ${user_id}`;
+        exec(cmd, (error) => {
+            if (error) {
+                console.error(`Error removing MQTT user ${user_id}:`, error.message);
+            } else {
+                console.log(`Removed MQTT user ${user_id} from passwd`);
+                const restartCmd = 'kill -HUP $(pidof mosquitto)';
+                exec(restartCmd, (restartError) => {
+                    if (restartError) {
+                        console.error(`Error restarting Mosquitto: ${restartError.message}`);
+                    } else {
+                        console.log(`Mosquitto restarted after user removal`);
+                    }
+                });
+            }
+        });
+    };
+
+    (async () => {
+        if (userClient.client.connected) {
+            await unsubscribeFromTopics();
+            await endClientConnection();
+        } else {
+            console.warn(`Client already disconnected for user ${user_id}, skipping unsubscribe and end.`);
         }
-    });
+
+        delete mqttClients[user_id];
+        console.log(`Removed ${user_id} from mqttClients`);
+
+        removeFromPasswd();
+    })();
 
     return true;
 }
+
 
 
 
@@ -146,7 +164,7 @@ function addMQTTUser(username, password) {
                 return resolve(false); // prevent crash, do not reject
             }
             console.log(`Output: ${stdout}`);
-            
+
             // Restart Mosquitto service to apply changes
             const restartCmd = 'kill -HUP $(pidof mosquitto)';
             exec(restartCmd, (restartError, restartStdout, restartStderr) => {
@@ -217,9 +235,9 @@ async function initAllUserMqttClients() {
         FROM users u
         JOIN mqtt m ON u.id = m.user_id
       `);
-    //   SELECT u.id AS user_id, u.mqtt_pass AS password, m.identifier
-    //   FROM users u
-    //   JOIN mqtt m ON u.id = m.user_id
+        //   SELECT u.id AS user_id, u.mqtt_pass AS password, m.identifier
+        //   FROM users u
+        //   JOIN mqtt m ON u.id = m.user_id
 
         const userMap = new Map();
 
@@ -228,11 +246,11 @@ async function initAllUserMqttClients() {
             console.log("mqtt_pass is :");
             console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
             console.log(res.rows);
-            
-            
-            
+
+
+
             console.log(mqtt_pass);
-            
+
             if (!userMap.has(user_id)) {
                 userMap.set(user_id, {
                     user_id,
