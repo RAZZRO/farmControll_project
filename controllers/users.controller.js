@@ -105,7 +105,7 @@ controller.edit_device = async (req, res) => {
         const token = authHeader.replace('Bearer ', '');
         const nationalCode = await getNationalCodeFromToken(token);
 
-        let text = 'UPDATE mqtt SET  device_name = $2  WHERE username = $1 RETURNING username';
+        let text = 'UPDATE devices SET  device_name = $2  WHERE username = $1 RETURNING username';
         let values = [
             data.identifier,
             data.deviceName,
@@ -141,7 +141,7 @@ controller.all_topics = async (req, res) => {
         const token = authHeader.replace('Bearer ', '');
         const nationalCode = await getNationalCodeFromToken(token);
 
-        const text = 'SELECT * FROM mqtt WHERE user_id = $1';
+        const text = 'SELECT * FROM devices WHERE user_id = $1';
         const values = [nationalCode];
 
         const result = await pool.query(text, values);

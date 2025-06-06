@@ -98,7 +98,7 @@ controller.new_device = async (req, res) => {
         }
         const [todayJalali, time] = getTodayJalali();
 
-        const query = 'INSERT INTO mqtt (user_id, start_date,device_name) VALUES ($1,$2,$3) RETURNING *';
+        const query = 'INSERT INTO devices (user_id, start_date,device_name) VALUES ($1,$2,$3) RETURNING *';
         const mqttValues = [
             data.nationalCode,
             `${todayJalali}`,
@@ -164,7 +164,7 @@ controller.edit_device = async (req, res) => {
 
     try {
 
-        let text = 'UPDATE mqtt SET  device_name = $2  WHERE identifier = $1 RETURNING identifier';
+        let text = 'UPDATE devices SET  device_name = $2  WHERE identifier = $1 RETURNING identifier';
 
         let values = [
             data.identifier,
@@ -324,7 +324,7 @@ controller.all_topics = async (req, res) => {
 
     const data = req.body;
 
-    let text = 'SELECT * FROM mqtt WHERE user_id = $1';
+    let text = 'SELECT * FROM devices WHERE user_id = $1';
     let values = [
         data.nationalCode,
     ];
