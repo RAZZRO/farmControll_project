@@ -29,9 +29,15 @@ class MessageHandler {
     }
 
     async handleHardwareData(user_id, topic, message) {
-        const { payload, timeStamp } = message;
-        const { date, clock } = timeStamp;
-        const timestamp = new Date(`${date}T${clock}`);
+    const { payload, timeStamp } = message;
+    console.log(timeStamp);
+    
+    const { date, clock } = timeStamp;
+    console.log(timeStamp);
+    
+    // ترکیب تاریخ و ساعت برای ساخت TIMESTAMP معتبر
+    const timestamp = new Date(`${date}T${clock}`);
+    console.log(timestamp);
 
         const client = await this.db.connect();
 
