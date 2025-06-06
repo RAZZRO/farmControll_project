@@ -31,34 +31,41 @@ class MessageHandler {
     async handleHardwareData(user_id, topic, message) {
         const { payload, timeStamp } = message;
 
+        const client = await this.db.connect();
+
         try {
+            await client.query('BEGIN');
+
             for (const [rtuKey, data] of Object.entries(payload)) {
-                // تبدیل rtu1 -> 1, rtu2 -> 2, ...
                 const rtu_id = parseInt(rtuKey.replace("rtu", ""));
 
-                await client.query(
-                    `INSERT INTO rtu_data (
-            device_id, rtu_id, humidity, airtemperature, moisture, ph, ec, co2, soiltemperature, date, clock
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-                    [
-                        topic,
-                        rtu_id,
-                        data.humidity,
-                        data.airTemperature,
-                        data.moisture,
-                        data.ph,
-                        data.EC,
-                        data.co2,
-                        data.soilTemperature,
-                        timeStamp.date,
-                        timeStamp.clock
-                    ]
-                );
+                const query = `
+                INSERT INTO rtu_data (
+                    device_id, rtu_id, humidity, airtemperature, moisture, ph, ec, co2, soiltemperature, date, clock
+                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`;
+
+                const mqttValues = [
+                    topic,
+                    rtu_id,
+                    data.humidity,
+                    data.airTemperature,
+                    data.moisture,
+                    data.ph,
+                    data.EC,
+                    data.co2,
+                    data.soilTemperature,
+                    timeStamp.date,
+                    timeStamp.clock
+                ];
+
+                await client.query(query, mqttValues);
             }
 
-            console.log(`Sensor data saved successfully for topic ${topic}`);
+            await client.query('COMMIT');
+            console.log(`All sensor data saved successfully for topic ${topic}`);
         } catch (err) {
-            console.error("Error inserting sensor data:", err);
+            await client.query('ROLLBACK');
+            console.error(`Error inserting sensor data for topic ${topic}:`, err);
         } finally {
             client.release();
         }
