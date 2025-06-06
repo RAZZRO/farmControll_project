@@ -4,7 +4,6 @@ const getTodayJalali = require('../config/getDate');
 const { exec } = require('child_process');
 
 const MessageHandler = require('./messageHandler');
-const { default: handle } = require('mqtt/lib/handlers/index');
 const handler = new MessageHandler(pool);
 
 const mqttClients = {};
