@@ -30,6 +30,8 @@ class MessageHandler {
 
     async handleHardwareData(user_id, topic, message) {
         const { payload, timeStamp } = message;
+        const { date, clock } = timeStamp;
+        const timestamp = new Date(`${date}T${clock}`);
 
         const client = await this.db.connect();
 
@@ -41,8 +43,8 @@ class MessageHandler {
 
                 const query = `
                 INSERT INTO rtu_data (
-                    device_id, rtu_id, humidity, airtemperature, moisture, ph, ec, co2, soiltemperature, date, clock
-                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`;
+                    device_id, rtu_id, humidity, airtemperature, moisture, ph, ec, co2, soiltemperature, timestamp
+                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`;
 
                 const mqttValues = [
                     topic,
@@ -54,8 +56,8 @@ class MessageHandler {
                     data.EC,
                     data.co2,
                     data.soilTemperature,
-                    timeStamp.date,
-                    timeStamp.clock
+                    timestamp, // زمان کامل به عنوان TIMESTAMP
+
                 ];
 
                 await client.query(query, mqttValues);
