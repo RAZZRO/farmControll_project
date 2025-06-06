@@ -1,3 +1,4 @@
+const { default: handle } = require("mqtt/lib/handlers/index");
 
 
 class MessageHandler {
@@ -67,4 +68,4 @@ class MessageHandler {
     }
 }
 
-module.exports = MessageHandler;
+module.exports = {handle};

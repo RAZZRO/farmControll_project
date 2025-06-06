@@ -4,6 +4,7 @@ const getTodayJalali = require('../config/getDate');
 const { exec } = require('child_process');
 
 const MessageHandler = require('./messageHandler');
+const { default: handle } = require('mqtt/lib/handlers/index');
 const handler = new MessageHandler(pool);
 
 const mqttClients = {};
@@ -143,7 +144,8 @@ async function createMqttClientForNewUser(user_id, password, identifiers = []) {
 
         if (!mqttClients[user_id].listenerAdded) {
             client.on('message', async (topic, messageBuffer) => {
-                await handler.handleMessage(user_id, topic, messageBuffer);
+                await handleHardwareData()
+                await handler.handle(user_id, topic, messageBuffer);
             });
             mqttClients[user_id].listenerAdded = true;
         }
@@ -181,7 +183,7 @@ async function createMqttClientForAllUsers(user_id, password, identifiers = []) 
 
     if (!mqttClients[user_id].listenerAdded) {
         client.on('message', async (topic, messageBuffer) => {
-            await handler.handleMessage(user_id, topic, messageBuffer);
+            await handler.handle(user_id, topic, messageBuffer);
         });
         mqttClients[user_id].listenerAdded = true;
     }
@@ -250,7 +252,7 @@ async function addTopicToExistingMqttClient(user_id, newIdentifier) {
 
             if (!userClient.listenerAdded) {
                 userClient.client.on('message', async (topic, messageBuffer) => {
-                    await handler.handleMessage(user_id, topic, messageBuffer);
+                    await handler.handle(user_id, topic, messageBuffer);
                 });
                 userClient.listenerAdded = true;
             }
