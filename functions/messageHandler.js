@@ -68,4 +68,4 @@ class MessageHandler {
     }
 }
 
-module.exports = {handle};
+module.exports = MessageHandler;
