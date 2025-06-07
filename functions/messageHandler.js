@@ -39,10 +39,10 @@ class MessageHandler {
         try {
             await client.query('BEGIN');
 
-            for (const [rtuKey, data] of Object.entries(payload)) {
+            for (const [rtuKey, rawData] of Object.entries(payload)) {
                 const rtu_id = parseInt(rtuKey.replace("rtu", ""));
 
-                const data = JSON.parse(data);
+                const data = JSON.parse(rawData);
 
                 const query = `
                 INSERT INTO rtu_data (
