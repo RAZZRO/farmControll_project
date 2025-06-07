@@ -143,6 +143,9 @@ async function createMqttClientForNewUser(user_id, password, identifiers = []) {
 
         if (!mqttClients[user_id].listenerAdded) {
             client.on('message', async (topic, messageBuffer) => {
+                const jsonString = messageBuffer.toString(); // تبدیل Buffer به رشته
+                const data = JSON.parse(jsonString);   // تبدیل رشته به JSON
+                console.log(data);
                 console.log("Received message:", messageBuffer);
 
                 await handler.handle(user_id, topic, messageBuffer);
