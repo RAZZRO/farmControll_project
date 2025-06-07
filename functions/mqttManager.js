@@ -143,7 +143,8 @@ async function createMqttClientForNewUser(user_id, password, identifiers = []) {
 
         if (!mqttClients[user_id].listenerAdded) {
             client.on('message', async (topic, messageBuffer) => {
-                await handleHardwareData()
+                console.log("Received message:", messageBuffer);
+
                 await handler.handle(user_id, topic, messageBuffer);
             });
             mqttClients[user_id].listenerAdded = true;
@@ -182,6 +183,7 @@ async function createMqttClientForAllUsers(user_id, password, identifiers = []) 
 
     if (!mqttClients[user_id].listenerAdded) {
         client.on('message', async (topic, messageBuffer) => {
+            console.log("Received message:", messageBuffer);
             await handler.handle(user_id, topic, messageBuffer);
         });
         mqttClients[user_id].listenerAdded = true;
@@ -251,6 +253,8 @@ async function addTopicToExistingMqttClient(user_id, newIdentifier) {
 
             if (!userClient.listenerAdded) {
                 userClient.client.on('message', async (topic, messageBuffer) => {
+                    console.log("Received message:", messageBuffer);
+
                     await handler.handle(user_id, topic, messageBuffer);
                 });
                 userClient.listenerAdded = true;
