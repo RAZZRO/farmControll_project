@@ -7,6 +7,8 @@ class MessageHandler {
     }
 
     async handle(user_id, topic, rawMessage) {
+        console.log("Received message:", rawMessage);
+        
         let message;
         try {
             message = JSON.parse(rawMessage.toString());
