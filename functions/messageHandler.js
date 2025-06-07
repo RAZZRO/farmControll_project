@@ -29,6 +29,8 @@ class MessageHandler {
     }
 
     async handleHardwareData(user_id, topic, message) {
+        console.log(message);
+        
         const { payload, timeStamp } = message;
         const { date, clock } = timeStamp;
 
