@@ -42,7 +42,7 @@ class MessageHandler {
             for (const [rtuKey, data] of Object.entries(payload)) {
                 const rtu_id = parseInt(rtuKey.replace("rtu", ""));
 
-                const data = JSON.parse(rawData);
+                const data = JSON.parse(data);
 
                 const query = `
                 INSERT INTO rtu_data (
