@@ -29,15 +29,10 @@ class MessageHandler {
     }
 
     async handleHardwareData(user_id, topic, message) {
-    const { payload, timeStamp } = message;
-    console.log(timeStamp);
-    
-    const { date, clock } = timeStamp;
-    console.log(timeStamp);
-    
-    // ترکیب تاریخ و ساعت برای ساخت TIMESTAMP معتبر
-    const timestamp = new Date(`${date}T${clock}`);
-    console.log(timestamp);
+        const { payload, timeStamp } = message;
+        const { date, clock } = timeStamp;
+
+        const timestamp = date && clock ? new Date(`${date}T${clock}`) : new Date();
 
         const client = await this.db.connect();
 
@@ -46,6 +41,8 @@ class MessageHandler {
 
             for (const [rtuKey, data] of Object.entries(payload)) {
                 const rtu_id = parseInt(rtuKey.replace("rtu", ""));
+
+                const data = JSON.parse(rawData);
 
                 const query = `
                 INSERT INTO rtu_data (
