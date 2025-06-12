@@ -7,7 +7,6 @@ class MessageHandler {
     }
 
     async handle(user_id, topic, rawMessage) {
-        console.log("Received message:", rawMessage);
 
         let message;
         try {
@@ -162,7 +161,7 @@ class MessageHandler {
             await client.query('BEGIN');
 
             if (global_mode !== "off") {
-                const data = JSON.parse(global);
+                const data = global;
 
 
                 const query = `
@@ -192,7 +191,7 @@ class MessageHandler {
 
                     const rtu_id = parseInt(rtuKey.replace("rtu", ""));
 
-                    const data = JSON.parse(rawData);
+                    const data = rawData;
 
                     const query = `
                 INSERT INTO irrigation_data (
