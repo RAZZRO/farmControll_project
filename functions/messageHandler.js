@@ -195,7 +195,7 @@ class MessageHandler {
 
                     const query = `
                 INSERT INTO irrigation_data (
-                    device_id, rtu_id, mode, status, start_date, stop_date, duriation, timestamp
+                    device_id, rtu_id, mode, status, start_date, stop_date, duration, timestamp
                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`;
 
                     const mqttValues = [
