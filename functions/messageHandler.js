@@ -179,7 +179,7 @@ class MessageHandler {
                     data.duration || null,
                     timeStamp,
                 ];
-                await client.query(query, mqttValues);
+                await client.query(query, Values);
                 await client.query('COMMIT');
                 console.log(`All sensor data saved successfully for topic ${topic}`);
 
@@ -199,7 +199,7 @@ class MessageHandler {
                     device_id, rtu_id, mode, status, start_date, stop_date, duration, timestamp
                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`;
 
-                    const mqttValues = [
+                    const Values = [
                         topic,
                         rtu_id,
                         data.mode,
@@ -211,7 +211,7 @@ class MessageHandler {
 
                     ];
 
-                    await client.query(query, mqttValues);
+                    await client.query(query, Values);
                 }
 
                 await client.query('COMMIT');
