@@ -176,7 +176,7 @@ class MessageHandler {
                     data.status,
                     data.start_date || null,
                     data.stop_date || null,
-                    data.duriation || null,
+                    data.duration || null,
                     timeStamp,
                 ];
                 await client.query(query, mqttValues);
@@ -185,6 +185,7 @@ class MessageHandler {
 
             }
             else {
+                const status = payload.status;
 
                 for (const [rtuKey, rawData] of Object.entries(payload)) {
                     if (rtuKey === "status" || rtuKey === "global") continue;
@@ -202,10 +203,10 @@ class MessageHandler {
                         topic,
                         rtu_id,
                         data.mode,
-                        data.status,
+                        status,
                         data.start_date || null,
                         data.stop_date || null,
-                        data.duriation || null,
+                        data.duration || null,
                         timeStamp,
 
                     ];
