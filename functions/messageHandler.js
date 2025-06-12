@@ -128,7 +128,7 @@ class MessageHandler {
                     data.EC,
                     data.co2,
                     data.soilTemperature,
-                    timestamp, // زمان کامل به عنوان TIMESTAMP
+                    timeStamp, // زمان کامل به عنوان TIMESTAMP
 
                 ];
 
@@ -175,7 +175,7 @@ class MessageHandler {
                     data.start_date || null,
                     data.stop_date || null,
                     data.duriation || null,
-                    timestamp,
+                    timeStamp,
                 ];
                 await client.query(query, mqttValues);
                 await client.query('COMMIT');
@@ -202,7 +202,7 @@ class MessageHandler {
                         data.start_date || null,
                         data.stop_date || null,
                         data.duriation || null,
-                        timestamp,
+                        timeStamp,
 
                     ];
 
@@ -248,7 +248,7 @@ class MessageHandler {
                     topic,
                     relay_id,
                     relay_state,
-                    timestamp,
+                    timeStamp,
                     messageStatus
 
                 ];
@@ -289,7 +289,7 @@ class MessageHandler {
                 payload.Internet ?? null,
                 payload.rain ?? null,
                 payload.wind_direction ?? null,
-                timestamp,
+                timeStamp,
 
                 payload.W1 ?? null,            // tank1: water level
                 payload.EC1 ?? null,           // tank1: EC
@@ -341,7 +341,7 @@ class MessageHandler {
                 topic,                   // device_id
                 payload.message || '',
                 payload.alarm_date,
-                timestamp
+                timeStamp
             ];
 
             await client.query(query, mqttValues);
