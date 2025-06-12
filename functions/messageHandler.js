@@ -100,7 +100,7 @@ class MessageHandler {
 
         timeStamp = timeStamp
             ? new Date(timeStamp.replace(/\//g, '-'))
-            : {};
+            : null;
 
 
         const client = await this.db.connect();
@@ -144,14 +144,17 @@ class MessageHandler {
             client.release();
         }
     }
+
     async handleHardwareIrrigation(user_id, topic, message) {
         console.log(message);
 
-        let { payload, global, timeStamp } = message;
-        const { global_mode } = global;
+        let { payload, timeStamp } = message;
+        const global = payload.global;
+        const global_mode = global?.mode;
+
         timeStamp = timeStamp
             ? new Date(timeStamp.replace(/\//g, '-'))
-            : {};
+            : null;
 
         const client = await this.db.connect();
 
@@ -185,6 +188,8 @@ class MessageHandler {
             else {
 
                 for (const [rtuKey, rawData] of Object.entries(payload)) {
+                    if (rtuKey === "status" || rtuKey === "global") continue;
+
                     const rtu_id = parseInt(rtuKey.replace("rtu", ""));
 
                     const data = JSON.parse(rawData);
@@ -226,7 +231,7 @@ class MessageHandler {
         let { payload, timeStamp } = message;
         timeStamp = timeStamp
             ? new Date(timeStamp.replace(/\//g, '-'))
-            : {};
+            : null;
         const messageStatus = payload.status;
 
         const client = await this.db.connect();
@@ -234,7 +239,7 @@ class MessageHandler {
         try {
             await client.query('BEGIN');
 
-            for (const [Key, value] of Object.entries(payload)) {
+            for (const [key, value] of Object.entries(payload)) {
                 if (key === "status") continue;
                 const relay_id = key;
                 const relay_state = value;
@@ -244,16 +249,16 @@ class MessageHandler {
                 ) VALUES ($1, $2, $3, $4, $5)
             `;
 
-                const mqttValues = [
+                const Values = [
                     topic,
                     relay_id,
-                    relay_state,
+                    relay_state || false,
                     timeStamp,
                     messageStatus
 
                 ];
 
-                await client.query(query, mqttValues);
+                await client.query(query, Values);
             }
 
             await client.query('COMMIT');
@@ -317,7 +322,6 @@ class MessageHandler {
         console.log(message);
 
         let { payload, timeStamp } = message;
-        const messageStatus = payload.status;
         timeStamp = timeStamp
             ? new Date(timeStamp.replace(/\//g, '-'))
             : {};
@@ -340,11 +344,11 @@ class MessageHandler {
             const values = [
                 topic,                   // device_id
                 payload.message || '',
-                payload.alarm_date,
+                payload.alarm_date || null,
                 timeStamp
             ];
 
-            await client.query(query, mqttValues);
+            await client.query(query, values);
 
 
             await client.query('COMMIT');

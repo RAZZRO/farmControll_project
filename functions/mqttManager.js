@@ -87,30 +87,6 @@ function addMQTTUser(username, password) {
     });
 }
 
-/**
- * Remove MQTT user from passwd and reload Mosquitto.
- */
-function removeMQTTUser(username) {
-    return new Promise((resolve) => {
-        const cmd = `sudo /usr/bin/mosquitto_passwd -D /etc/mosquitto/passwd ${username}`;
-        exec(cmd, (error) => {
-            if (error) {
-                console.error(`Error removing MQTT user ${username}:`, error.message);
-                return resolve(false);
-            }
-            console.log(`Removed MQTT user ${username} from passwd.`);
-
-            exec('kill -HUP $(pidof mosquitto)', (restartError) => {
-                if (restartError) {
-                    console.error(`Error restarting Mosquitto: ${restartError.message}`);
-                    return resolve(false);
-                }
-                console.log(`Mosquitto reloaded after removing user ${username}`);
-                resolve(true);
-            });
-        });
-    });
-}
 
 
 /**
@@ -143,10 +119,6 @@ async function createMqttClientForNewUser(user_id, password, identifiers = []) {
 
         if (!mqttClients[user_id].listenerAdded) {
             client.on('message', async (topic, messageBuffer) => {
-                const jsonString = messageBuffer.toString(); // تبدیل Buffer به رشته
-                
-                const data = JSON.parse(jsonString);   // تبدیل رشته به JSON
-
                 await handler.handle(user_id, topic, messageBuffer);
             });
             mqttClients[user_id].listenerAdded = true;
@@ -185,7 +157,6 @@ async function createMqttClientForAllUsers(user_id, password, identifiers = []) 
 
     if (!mqttClients[user_id].listenerAdded) {
         client.on('message', async (topic, messageBuffer) => {
-            console.log("Received message:", messageBuffer);
             await handler.handle(user_id, topic, messageBuffer);
         });
         mqttClients[user_id].listenerAdded = true;
@@ -255,7 +226,6 @@ async function addTopicToExistingMqttClient(user_id, newIdentifier) {
 
             if (!userClient.listenerAdded) {
                 userClient.client.on('message', async (topic, messageBuffer) => {
-                    console.log("Received message:", messageBuffer);
 
                     await handler.handle(user_id, topic, messageBuffer);
                 });
