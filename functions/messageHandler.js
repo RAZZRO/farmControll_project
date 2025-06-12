@@ -8,7 +8,7 @@ class MessageHandler {
 
     async handle(user_id, topic, rawMessage) {
         console.log("Received message:", rawMessage);
-        
+
         let message;
         try {
             message = JSON.parse(rawMessage.toString());
@@ -18,25 +18,90 @@ class MessageHandler {
         }
 
         const { sender, type } = message;
-        if (sender === "hardWare" && type === "data") {
-            return await this.handleHardwareData(user_id, topic, message);
+        if (sender === "hardWare") {
+            switch (type) {
+                case "data":
+                    await this.logMessage('rtu data received', message, topic);
+                    await this.handleHardwareData(user_id, topic, message);
+                    break;
+                case "irrigation":
+                    await this.logMessage('irrigation data received', message, topic);
+                    await this.handleHardwareIrrigation(user_id, topic, message);
+                    break;
+
+                case "relay":
+                    await this.logMessage('Relay data received', message, topic);
+                    await this.handleHardwareRelay(user_id, topic, message);
+                    break;
+
+                case "centralData":
+                    await this.logMessage('Central and stack data received', message, topic);
+                    await this.handleHardwareCentralData(user_id, topic, message);
+                    break;
+
+                case "alarm":
+                    await this.logMessage('Alarm data received and received', message, topic);
+                    await this.handleHardwareAlarm(user_id, topic, message);
+                    break;
+
+                default:
+                    await this.logMessage(client, 'error', topic, `No handler for sender=${sender}, type=${type}`, message, topic);
+
+                    console.warn(`No handler for sender=${sender}, type=${type}`);
+                    break;
+            }
         }
 
-        // سایر شرایط
-        if (sender === "hardWare" && type === "status") {
-            return await this.handleHardwareStatus(user_id, topic, message);
-        }
+        // if (sender === "hardWare" && type === "data") {
+        // }
 
-        console.warn(`No handler for sender=${sender}, type=${type}`);
+        // // سایر شرایط
+        // if (sender === "hardWare" && type === "status") {
+        //     return await this.handleHardwareStatus(user_id, topic, message);
+        // }
+
     }
+
+    async logMessage(messageText, data, topic) {
+        const client = await this.db.connect();
+
+        try {
+            await client.query(`
+            INSERT INTO logs (
+                log_type, 
+                source, 
+                message, 
+                data, 
+                device_id
+            ) VALUES ($1, $2, $3, $4, $5)
+        `, [
+                "message",       // log_type
+                "hardWare",      // source
+                messageText,     // message
+                JSON.stringify(data),            // data (JSON)
+                topic            // device_id 
+            ]);
+        } catch (err) {
+            console.error("Error inserting log:", err);
+        } finally {
+            client.release();
+        }
+    }
+
+
+
+
+
 
     async handleHardwareData(user_id, topic, message) {
         console.log(message);
-        
-        const { payload, timeStamp } = message;
-        const { date, clock } = timeStamp;
 
-        const timestamp = date && clock ? new Date(`${date}T${clock}`) : new Date();
+        const { payload, timeStamp } = message;
+
+        timeStamp = timeStamp
+            ? new Date(timeStamp.replace(/\//g, '-'))
+            : {};
+
 
         const client = await this.db.connect();
 
@@ -79,9 +144,230 @@ class MessageHandler {
             client.release();
         }
     }
-    async handleHardwareStatus(user_id, topic, message) {
-        // ذخیره وضعیت سخت‌افزار یا به‌روزرسانی آن در دیتابیس
+    async handleHardwareIrrigation(user_id, topic, message) {
+        console.log(message);
+
+        const { payload, global, timeStamp } = message;
+        const { global_mode } = global;
+        timeStamp = timeStamp
+            ? new Date(timeStamp.replace(/\//g, '-'))
+            : {};
+
+        const client = await this.db.connect();
+
+        try {
+            await client.query('BEGIN');
+
+            if (global_mode !== "off") {
+                const data = JSON.parse(global);
+
+
+                const query = `
+                INSERT INTO irrigation_data (
+                    device_id, rtu_id, mode, status, start_date, stop_date, duriation, timestamp
+                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`;
+
+                const Values = [
+                    topic,
+                    null,
+                    global_mode,
+                    data.status,
+                    data.start_date || null,
+                    data.stop_date || null,
+                    data.duriation || null,
+                    timestamp,
+                ];
+                await client.query(query, mqttValues);
+                await client.query('COMMIT');
+                console.log(`All sensor data saved successfully for topic ${topic}`);
+
+            }
+            else {
+
+                for (const [rtuKey, rawData] of Object.entries(payload)) {
+                    const rtu_id = parseInt(rtuKey.replace("rtu", ""));
+
+                    const data = JSON.parse(rawData);
+
+                    const query = `
+                INSERT INTO irrigation_data (
+                    device_id, rtu_id, mode, status, start_date, stop_date, duriation, timestamp
+                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`;
+
+                    const mqttValues = [
+                        topic,
+                        rtu_id,
+                        data.mode,
+                        data.status,
+                        data.start_date || null,
+                        data.stop_date || null,
+                        data.duriation || null,
+                        timestamp,
+
+                    ];
+
+                    await client.query(query, mqttValues);
+                }
+
+                await client.query('COMMIT');
+                console.log(`All Irrigation data saved successfully for topic ${topic}`);
+            }
+        } catch (err) {
+            await client.query('ROLLBACK');
+            console.error(`Error inserting Irrigation data for topic ${topic}:`, err);
+        } finally {
+            client.release();
+        }
     }
+
+    async handleHardwareRelay(user_id, topic, message) {
+        console.log(message);
+
+        const { payload, timeStamp } = message;
+        timeStamp = timeStamp
+            ? new Date(timeStamp.replace(/\//g, '-'))
+            : {};
+        const messageStatus = payload.status;
+
+        const client = await this.db.connect();
+
+        try {
+            await client.query('BEGIN');
+
+            for (const [Key, value] of Object.entries(payload)) {
+                if (key === "status") continue;
+                const relay_id = key;
+                const relay_state = value;
+                const query = `
+                INSERT INTO relay_data (
+                    device_id, relay_id, relay_state, timestamp, message_status
+                ) VALUES ($1, $2, $3, $4, $5)
+            `;
+
+                const mqttValues = [
+                    topic,
+                    relay_id,
+                    relay_state,
+                    timestamp,
+                    messageStatus
+
+                ];
+
+                await client.query(query, mqttValues);
+            }
+
+            await client.query('COMMIT');
+            console.log(`Relay data saved successfully for topic ${topic}`);
+        } catch (err) {
+            await client.query('ROLLBACK');
+            console.error(`Error inserting relay data for topic ${topic}:`, err);
+        } finally {
+            client.release();
+        }
+    }
+
+    async handleHardwareCentralData(user_id, topic, message) {
+        console.log(message);
+
+        const { payload, timeStamp } = message;
+        timeStamp = timeStamp
+            ? new Date(timeStamp.replace(/\//g, '-'))
+            : {};
+
+        const client = await this.db.connect();
+
+        try {
+            await client.query('BEGIN');
+
+            const query =
+                `SELECT insert_all_central_data($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`;
+
+            const mqttValues = [
+                topic,                          // device_id
+                payload.battery_charge ?? null,
+                payload.sim_charge ?? null,
+                payload.Internet ?? null,
+                payload.rain ?? null,
+                payload.wind_direction ?? null,
+                timestamp,
+
+                payload.W1 ?? null,            // tank1: water level
+                payload.EC1 ?? null,           // tank1: EC
+                payload.PH1 ?? null,           // tank1: pH
+
+                payload.W2 ?? null,            // tank2: water level
+                payload.EC2 ?? null,           // tank2: EC
+                payload.PH2 ?? null
+            ];
+
+            await client.query(query, mqttValues);
+
+            await client.query('COMMIT');
+            console.log(`centralData and stackData saved for topic ${topic}`);
+        } catch (err) {
+            await client.query('ROLLBACK');
+            console.error(`Error handling central/stack data for topic ${topic}:`, err);
+        } finally {
+            client.release();
+        }
+    }
+
+
+    async handleHardwareAlarm(user_id, topic, message) {
+        console.log(message);
+
+        const { payload, timeStamp } = message;
+        const messageStatus = payload.status;
+        timeStamp = timeStamp
+            ? new Date(timeStamp.replace(/\//g, '-'))
+            : {};
+
+        const client = await this.db.connect();
+
+        try {
+            await client.query('BEGIN');
+
+
+            const query = `
+            INSERT INTO alarm_data (
+                device_id,
+                message,
+                alarm_date,
+                timestamp
+            ) VALUES ($1, $2, $3, $4)
+        `;
+
+            const values = [
+                topic,                   // device_id
+                payload.message || '',
+                payload.alarm_date,
+                timestamp
+            ];
+
+            await client.query(query, mqttValues);
+
+
+            await client.query('COMMIT');
+            console.log(`Alarm message saved successfully for topic ${topic}`);
+        } catch (err) {
+            await client.query('ROLLBACK');
+            console.error(`Error inserting Alarm message for topic ${topic}:`, err);
+        } finally {
+            client.release();
+        }
+    }
+
+
+
+
 }
 
 module.exports = MessageHandler;
+
+
+
+
+
+// const alarmDate = timeStamp
+//     ? new Date(timeStamp.replace(/\//g, '-'))
+//     : new Date();
