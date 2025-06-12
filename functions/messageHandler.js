@@ -96,7 +96,7 @@ class MessageHandler {
     async handleHardwareData(user_id, topic, message) {
         console.log(message);
 
-        const { payload, timeStamp } = message;
+        let { payload, timeStamp } = message;
 
         timeStamp = timeStamp
             ? new Date(timeStamp.replace(/\//g, '-'))
@@ -147,7 +147,7 @@ class MessageHandler {
     async handleHardwareIrrigation(user_id, topic, message) {
         console.log(message);
 
-        const { payload, global, timeStamp } = message;
+        let { payload, global, timeStamp } = message;
         const { global_mode } = global;
         timeStamp = timeStamp
             ? new Date(timeStamp.replace(/\//g, '-'))
@@ -223,7 +223,7 @@ class MessageHandler {
     async handleHardwareRelay(user_id, topic, message) {
         console.log(message);
 
-        const { payload, timeStamp } = message;
+        let { payload, timeStamp } = message;
         timeStamp = timeStamp
             ? new Date(timeStamp.replace(/\//g, '-'))
             : {};
@@ -269,7 +269,7 @@ class MessageHandler {
     async handleHardwareCentralData(user_id, topic, message) {
         console.log(message);
 
-        const { payload, timeStamp } = message;
+        let { payload, timeStamp } = message;
         timeStamp = timeStamp
             ? new Date(timeStamp.replace(/\//g, '-'))
             : {};
@@ -316,7 +316,7 @@ class MessageHandler {
     async handleHardwareAlarm(user_id, topic, message) {
         console.log(message);
 
-        const { payload, timeStamp } = message;
+        let { payload, timeStamp } = message;
         const messageStatus = payload.status;
         timeStamp = timeStamp
             ? new Date(timeStamp.replace(/\//g, '-'))
