@@ -1,6 +1,5 @@
 const pool = require('../config/db');
 const { v4: uuidv4 } = require('uuid');
-
 const bcrypt = require('bcrypt');
 //const jwt = require('jsonwebtoken');
 //require('dotenv').config();
@@ -133,6 +132,36 @@ controller.edit_device = async (req, res) => {
 
 
 
+controller.device_information = async (req, res) => {
+
+    const { identifier } = req.body;
+
+
+
+    try {
+
+        const query = 'SELECT * FROM get_latest_device_data($1) AS message';
+        const mqttValues = [
+            identifier
+        ];
+
+
+        const result = await pool.query(query, mqttValues);
+
+
+        if (result.rowCount > 0) {
+            res.status(200).json({ success: 'true', data: result.rows[0] });
+
+        } else {
+            res.status(400).json({ message: 'data not found' });
+        }
+    } catch (err) {
+        console.error(' Database error:', err);
+
+        res.status(500).json({ message: 'Internal Server Error' });
+
+    }
+};
 controller.all_topics = async (req, res) => {
     try {
         const authHeader = req.headers['authorization'];
@@ -152,6 +181,8 @@ controller.all_topics = async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 };
+
+
 
 // middleware/auth.js
 // const pool = require('../db');
