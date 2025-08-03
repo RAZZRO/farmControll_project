@@ -183,11 +183,9 @@ controller.all_topics = async (req, res) => {
             };
         });
 
-        res.json({
-            success: true,
-            statusCode: 200,
-            data: convertedRows
-        });
+        res.json(
+            convertedRows
+        );
 
     } catch (err) {
         console.error(err);
