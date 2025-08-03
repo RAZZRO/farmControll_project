@@ -173,7 +173,7 @@ controller.all_topics = async (req, res) => {
 
         const result = await pool.query(text, values);
 
-        res.json({ success: true, data: JSON.stringify(result.rows) });
+        res.json(result.rows );
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Internal Server Error' });
