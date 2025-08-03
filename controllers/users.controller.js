@@ -25,20 +25,20 @@ const moment = require('jalali-moment');
 //     return { accessToken, refreshToken };
 // };
 
-const getNationalCodeFromToken = async (token) => {
-    const text = 'SELECT id FROM users WHERE auth_token = $1';
-    const values = [token];
+// const getNationalCodeFromToken = async (token) => {
+//     const text = 'SELECT id FROM users WHERE auth_token = $1';
+//     const values = [token];
 
-    const result = await pool.query(text, values);
+//     const result = await pool.query(text, values);
 
-    if (result.rows.length === 0) {
-        throw new Error('Invalid token');
-    }
-    console.log(result.rows[0].id);
+//     if (result.rows.length === 0) {
+//         throw new Error('Invalid token');
+//     }
+//     console.log(result.rows[0].id);
 
 
-    return result.rows[0].id;
-};
+//     return result.rows[0].id;
+// };
 
 
 
@@ -97,16 +97,9 @@ controller.login = async (req, res) => {
 
 controller.edit_device = async (req, res) => {
     const data = req.body;
-
-
     try {
-        const authHeader = req.headers['authorization'];
-        if (!authHeader) return res.status(401).json({ success: false, error: 'No token provided' });
 
-        const token = authHeader.replace('Bearer ', '');
-        const nationalCode = await getNationalCodeFromToken(token);
-
-        let text = 'UPDATE devices SET  device_name = $2  WHERE username = $1 RETURNING username';
+        let text = 'UPDATE devices SET  device_name = $2  WHERE identifier = $1 RETURNING identifier';
         let values = [
             data.identifier,
             data.deviceName,

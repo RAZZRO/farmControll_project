@@ -5,7 +5,7 @@ const auth = require('../functions/auth');
 
 
 router.post('/login', userController.login);
-router.post('/edit_device', userController.edit_device);
+router.post('/edit_device',auth, userController.edit_device);
 router.post('/device_information', auth,userController.device_information);
 //router.post('/device_information', userController.device_information);
 
