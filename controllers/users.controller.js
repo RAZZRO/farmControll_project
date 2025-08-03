@@ -1,6 +1,8 @@
 const pool = require('../config/db');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
+const moment = require('jalali-moment');
+
 //const jwt = require('jsonwebtoken');
 //require('dotenv').config();
 
@@ -171,9 +173,21 @@ controller.all_topics = async (req, res) => {
         const text = 'SELECT * FROM devices WHERE user_id = $1';
         const values = [user.id];
 
-        const result = await pool.query(text, values);
+        const convertedRows = result.rows.map(device => {
+            return {
+                ...device,
+                start_date: moment(device.start_date)
+                    .locale('fa')
+                    .format('YYYY/MM/DD') 
+            };
+        });
 
-        res.json(result.rows );
+        res.json({
+            success: true,
+            statusCode: 200,
+            data: convertedRows
+        });
+
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Internal Server Error' });
