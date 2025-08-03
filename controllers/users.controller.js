@@ -163,7 +163,7 @@ controller.all_topics = async (req, res) => {
 
         const user = req.user;
 
-        const text = 'SELECT * FROM devices WHERE user_id = $1';
+        const text = 'SELECT * FROM devices WHERE user_id = $1 ORDER BY start_date ASC';
         const values = [user.id];
         const result = await pool.query(text, values);
 
