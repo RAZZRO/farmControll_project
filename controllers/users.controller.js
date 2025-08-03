@@ -172,13 +172,14 @@ controller.all_topics = async (req, res) => {
 
         const text = 'SELECT * FROM devices WHERE user_id = $1';
         const values = [user.id];
+        const result = await pool.query(text, values);
 
         const convertedRows = result.rows.map(device => {
             return {
                 ...device,
                 start_date: moment(device.start_date)
                     .locale('fa')
-                    .format('YYYY/MM/DD') 
+                    .format('YYYY/MM/DD')
             };
         });
 
