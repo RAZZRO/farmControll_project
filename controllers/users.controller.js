@@ -162,23 +162,21 @@ controller.device_information = async (req, res) => {
 
     }
 };
+
 controller.all_topics = async (req, res) => {
     try {
-        const authHeader = req.headers['authorization'];
-        if (!authHeader) return res.status(401).json({ success: false, error: 'No token provided' });
 
-        const token = authHeader.replace('Bearer ', '');
-        const nationalCode = await getNationalCodeFromToken(token);
+        const user = req.user;
 
         const text = 'SELECT * FROM devices WHERE user_id = $1';
-        const values = [nationalCode];
+        const values = [user.id];
 
         const result = await pool.query(text, values);
 
         res.json({ success: true, data: JSON.stringify(result.rows) });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 };
 

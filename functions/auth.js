@@ -1,6 +1,8 @@
 const pool = require('../config/db');
 
 async function authMiddleware(req, res, next) {
+  console.log('auth start');
+  
   const token = req.headers['authorization']?.split(' ')[1];
   
   
