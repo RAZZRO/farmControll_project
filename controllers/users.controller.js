@@ -2,6 +2,8 @@ const pool = require('../config/db');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const moment = require('jalali-moment');
+const { createLog } = require('../functions/createLog');
+
 
 //const jwt = require('jsonwebtoken');
 //require('dotenv').config();
@@ -49,13 +51,10 @@ const controller = {};
 
 controller.login = async (req, res) => {
     const { nationalCode, password } = req.body;
-    //console.log(secretKey);
-
 
     try {
         const text = 'SELECT * FROM users WHERE id = $1';
         const values = [nationalCode];
-        console.log(values);
 
         const result = await pool.query(text, values);
 
@@ -63,18 +62,22 @@ controller.login = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
-        //log(result.rows[0]);
         const user = result.rows[0];
         const isMatch = await bcrypt.compare(password, user.password);
-        console.log(isMatch);
 
         if (!isMatch) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
-        //const { accessToken, refreshToken } = generateTokens(user);
         const token = uuidv4();
 
         await pool.query('UPDATE users SET auth_token = $1 WHERE id = $2', [token, user.id]);
+
+        await createLog({
+            logType: 'Login',
+            source: 'UserController',
+            message: `User loged In`,
+            data: { nationalCode: user.id },
+        });
 
         res.json({
             success: true,
@@ -91,6 +94,12 @@ controller.login = async (req, res) => {
 
     } catch (err) {
         console.error(err);
+        await createLog({
+            logType: 'Login',
+            source: 'UserController',
+            message: `Internal server error`,
+            data: { nationalCode: user.id, error: err.message },
+        });
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
@@ -108,17 +117,37 @@ controller.edit_device = async (req, res) => {
 
         if (result.rowCount === 0) {
             console.log('device not found');
+            await createLog({
+                logType: 'edit device',
+                source: 'UserController',
+                message: `device not found`,
+                data: { identifier: data.identifier, device_name: data.deviceName },
+                deviceId: data.identifier
+            });
             res.status(404).json({ success: false, message: "device not found" });
         } else {
             console.log('edit done succesfully');
+            await createLog({
+                logType: 'edit device',
+                source: 'UserController',
+                message: `edit done succesfully`,
+                data: { identifier: data.identifier, device_name: data.deviceName },
+                deviceId: data.identifier
+            });
             res.status(200).json({ success: true, message: 'edit done succesfully' });
 
-            // res.status(200).json({ success: true, message: 'edit done succesfully' });
 
         }
     } catch (err) {
         console.error(err);
-        res.status(500).json({ success: false, error: err.message });
+        await createLog({
+            logType: 'edit device',
+            source: 'UserController',
+            message: `Internal Server Error`,
+            data: { identifier: data.identifier, device_name: data.deviceName, "error": err.message },
+            deviceId: data.identifier
+        });
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 
 
@@ -129,7 +158,7 @@ controller.edit_device = async (req, res) => {
 
 controller.device_information = async (req, res) => {
 
-    const { identifier } = req.body;
+    const data = req.body;
 
 
 
@@ -137,7 +166,7 @@ controller.device_information = async (req, res) => {
 
         const query = 'SELECT * FROM get_latest_device_data($1) AS message';
         const mqttValues = [
-            identifier
+            data.identifier
         ];
 
 
@@ -145,14 +174,35 @@ controller.device_information = async (req, res) => {
 
 
         if (result.rowCount > 0) {
+            await createLog({
+                logType: 'device information',
+                source: 'UserController',
+                message: `device information send succesfully`,
+                data: { data: result.rows[0] },
+                deviceId: data.identifier
+            });
+
             res.status(200).json({ success: 'true', data: result.rows[0] });
 
         } else {
+            await createLog({
+                logType: 'device information',
+                source: 'UserController',
+                message: `data not found`,
+                deviceId: data.identifier
+            });
+
             res.status(400).json({ message: 'data not found' });
         }
     } catch (err) {
         console.error(' Database error:', err);
-
+        await createLog({
+            logType: 'device information',
+            source: 'UserController',
+            message: `Internal Server Error`,
+            data: { error: err.message },
+            deviceId: data.identifier
+        });
         res.status(500).json({ message: 'Internal Server Error' });
 
     }
