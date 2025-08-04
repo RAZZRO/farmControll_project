@@ -173,7 +173,7 @@ controller.user_information = async (req, res) => {
                 data: { data: result.rows[0] },
             });
 
-            res.status(200).json(result.rows[0]);
+            res.status(200).json({ success: true, data: result.rows[0] });
 
         } else {
             await createLog({
