@@ -10,6 +10,7 @@ router.post('/device_information', auth,userController.device_information);
 //router.post('/device_information', userController.device_information);
 
 router.get('/all_topics',auth, userController.all_topics);
+router.get('/user_information',auth, userController.user_information);
 //router.post('/refresh_token', userController.refreshToken); 
 
 // const express = require('express');

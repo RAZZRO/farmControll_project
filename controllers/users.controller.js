@@ -156,6 +156,46 @@ controller.edit_device = async (req, res) => {
 
 
 
+controller.user_information = async (req, res) => {
+
+    try {
+        const user = req.user;
+
+        const text = 'SELECT id,first_name,last_name,start_date,phone FROM users WHERE id = $1 ';
+        const values = [user.id];
+        const result = await pool.query(text, values);
+
+        if (result.rowCount > 0) {
+            await createLog({
+                logType: 'user information',
+                source: 'UserController',
+                message: `user information send succesfully`,
+                data: { data: result.rows[0] },
+            });
+
+            res.status(200).json(result.rows[0]);
+
+        } else {
+            await createLog({
+                logType: 'user information',
+                source: 'UserController',
+                message: `data not found`,
+            });
+
+            res.status(400).json({ message: 'data not found' });
+        }
+    } catch (err) {
+        console.error(' Database error:', err);
+        await createLog({
+            logType: 'user information',
+            source: 'UserController',
+            message: `Internal Server Error`,
+            data: { error: err.message },
+        });
+        res.status(500).json({ message: 'Internal Server Error' });
+
+    }
+};
 controller.device_information = async (req, res) => {
 
     const data = req.body;

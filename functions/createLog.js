@@ -1,4 +1,4 @@
-const db = require('../config/db'); // اتصال به دیتابیس (مثلاً با pg-promise یا هر ORM)
+const pool = require('../config/db');
 
 async function createLog({ logType, source, message, data, deviceId }) {
     const query = `
@@ -6,8 +6,13 @@ async function createLog({ logType, source, message, data, deviceId }) {
         VALUES ($1, $2, $3, $4, $5)
     `;
     const values = [logType, source, message, data, deviceId];
+
     try {
-        await db.query(query, values);
+       const result = await pool.query(query, values);
+       console.log("log result is :");
+       
+       console.log(result);
+       
     } catch (err) {
         console.error('Error while creating log:', err);
     }
