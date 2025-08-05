@@ -186,7 +186,7 @@ controller.edit_user = async (req, res) => {
                 message: `edit done succesfully`,
                 data: { nationalCode: user.id, firstName: data.first_name, last_name: data.lastName, phone: data.phone }
             });
-            res.status(200).json({ message: 'edit done succesfully' });
+            res.status(200).json({ success: true, message: 'edit done succesfully' });
         } else {
             await createLog({
                 logType: 'edit user',
@@ -194,7 +194,7 @@ controller.edit_user = async (req, res) => {
                 message: `nathonalCode not found`,
                 data: { nationalCode: user.id, firstName: data.first_name, last_name: data.lastName, phone: data.phone }
             });
-            res.statu(400).json({ message: "nathonalCode not found" });
+            res.statu(400).json({ success: false, message: "nathonalCode not found" });
         }
 
     } catch (err) {
@@ -204,7 +204,7 @@ controller.edit_user = async (req, res) => {
             message: `Internal Server Error`,
             data: { error: err.message }
         });
-        res.status(500).json({ message: 'Internal Server Error' });
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 
 }
@@ -214,7 +214,7 @@ controller.change_password = async (req, res) => {
 
     try {
         console.log("start changing password");
-        
+
         const user = req.user;
         const passText = 'SELECT password FROM users WHERE id = $1';
         const passValues = [user.id];
@@ -224,11 +224,11 @@ controller.change_password = async (req, res) => {
 
         const password = getPass.rows[0].password;
         console.log(getPass.rows[0].password);
-        
+
 
         const isMatch = await bcrypt.compare(data.oldPassword, password);
         console.log(isMatch);
-        
+
 
         if (!isMatch) {
             await createLog({
@@ -263,7 +263,7 @@ controller.change_password = async (req, res) => {
                 message: `edit done succesfully`,
                 data: { nationalCode: user.id }
             });
-            res.status(200).json({ message: 'edit done succesfully' });
+            res.status(200).json({ success: true, message: 'edit done succesfully' });
         } else {
             await createLog({
                 logType: 'change password',
@@ -271,7 +271,7 @@ controller.change_password = async (req, res) => {
                 message: `nathonalCode not found`,
                 data: { nationalCode: user.id }
             });
-            res.statu(400).json({ message: "nathonalCode not found" });
+            res.statu(400).json({ success: false, message: "nathonalCode not found" });
         }
 
     } catch (err) {
