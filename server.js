@@ -20,7 +20,7 @@ app.use(express.json());
 app.use('/user', userRoutes);
 app.use('/admin', adminRoutes);
 //app.use('/data', dataRoutes);
-//mqttManager.initAllUserMqttClients();
+mqttManager.initAllUserMqttClients();
 
 app.listen(port,'0.0.0.0', () => {
   console.log(`Server running on port ${port}`);
