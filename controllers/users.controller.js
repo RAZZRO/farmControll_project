@@ -154,6 +154,138 @@ controller.edit_device = async (req, res) => {
 
 }
 
+controller.edit_user = async (req, res) => {
+    const data = req.body;
+    console.log(data);
+
+
+    try {
+        const user = req.user;
+        console.log(user);
+
+
+        let text = 'UPDATE users SET  phone = $2 , first_name = $3 , last_name =  $4  WHERE id = $1 RETURNING id';
+
+        let values = [
+            user.id,
+            data.phone,
+            data.firstName,
+            data.lastName
+
+        ];
+        console.log('Query:', text);
+        console.log('Values:', values);
+
+
+        const result = await pool.query(text, values);
+        console.log(result);
+        if (result.rowCount > 0) {
+            await createLog({
+                logType: 'edit user',
+                source: 'UserController',
+                message: `edit done succesfully`,
+                data: { nationalCode: user.id, firstName: data.first_name, last_name: data.lastName, phone: data.phone }
+            });
+            res.status(200).json({ message: 'edit done succesfully' });
+        } else {
+            await createLog({
+                logType: 'edit user',
+                source: 'UserController',
+                message: `nathonalCode not found`,
+                data: { nationalCode: user.id, firstName: data.first_name, last_name: data.lastName, phone: data.phone }
+            });
+            res.statu(400).json({ message: "nathonalCode not found" });
+        }
+
+    } catch (err) {
+        await createLog({
+            logType: 'edit user',
+            source: 'UserController',
+            message: `Internal Server Error`,
+            data: { error: err.message }
+        });
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+
+}
+
+controller.change_password = async (req, res) => {
+    const data = req.body;
+
+    try {
+        console.log("start changing password");
+        
+        const user = req.user;
+        const passText = 'SELECT password FROM users WHERE id = $1';
+        const passValues = [user.id];
+
+        const getPass = await pool.query(passText, passValues);
+
+
+        const password = getPass.rows[0].password;
+        console.log(getPass.rows[0].password);
+        
+
+        const isMatch = await bcrypt.compare(data.oldPassword, password);
+        console.log(isMatch);
+        
+
+        if (!isMatch) {
+            await createLog({
+                logType: 'change password',
+                source: 'UserController',
+                message: `wrong password`,
+                data: { nationalCode: user.id }
+            });
+            return res.status(401).json({ success: false, message: 'wrong password' });
+        }
+        console.log(data.newPassword);
+
+        const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+        console.log(hashedPassword);
+
+        let text = 'UPDATE users SET  password = $2   WHERE id = $1 RETURNING id';
+
+        let values = [
+            user.id,
+            hashedPassword
+        ];
+        console.log('Query:', text);
+        console.log('Values:', values);
+
+
+        const result = await pool.query(text, values);
+        console.log(result);
+        if (result.rowCount > 0) {
+            await createLog({
+                logType: 'change password',
+                source: 'UserController',
+                message: `edit done succesfully`,
+                data: { nationalCode: user.id }
+            });
+            res.status(200).json({ message: 'edit done succesfully' });
+        } else {
+            await createLog({
+                logType: 'change password',
+                source: 'UserController',
+                message: `nathonalCode not found`,
+                data: { nationalCode: user.id }
+            });
+            res.statu(400).json({ message: "nathonalCode not found" });
+        }
+
+    } catch (err) {
+        await createLog({
+            logType: 'change password',
+            source: 'UserController',
+            message: `Internal Server Error`,
+            data: { error: err.message }
+        });
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+
+}
+
 
 
 controller.user_information = async (req, res) => {

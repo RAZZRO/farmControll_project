@@ -9,9 +9,7 @@ async function createLog({ logType, source, message, data, deviceId }) {
 
     try {
        const result = await pool.query(query, values);
-       console.log("log result is :");
-       
-       console.log(result);
+
        
     } catch (err) {
         console.error('Error while creating log:', err);
