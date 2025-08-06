@@ -354,7 +354,7 @@ controller.device_information = async (req, res) => {
                 deviceId: data.identifier
             });
 
-            res.status(200).json({ success: 'true', data: result.rows[0] });
+            res.status(200).json(result.rows[0]);
 
         } else {
             await createLog({
