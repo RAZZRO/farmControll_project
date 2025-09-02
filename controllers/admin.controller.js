@@ -3,7 +3,8 @@ const pool = require('../config/db');
 const getTodayJalali = require('../config/getDate');
 const client = require('../config/mqtt');
 const bcrypt = require('bcrypt');
-
+const moment = require('moment-jalaali');
+moment.loadPersian({ dialect: 'persian-modern' });
 const mqttManager = require('../functions/mqttManager');
 
 const controller = {};
@@ -312,8 +313,7 @@ controller.all_users = async (req, res) => {
 
 controller.all_topics = async (req, res) => {
 
-    const moment = require('moment-jalaali');
-    moment.loadPersian({ dialect: 'persian-modern' });
+
 
     const data = req.body;
 
