@@ -4,7 +4,7 @@ const getTodayJalali = require('../config/getDate');
 const client = require('../config/mqtt');
 const bcrypt = require('bcrypt');
 const moment = require('jalali-moment');
-moment.loadPersian({ dialect: 'persian-modern' });
+
 const mqttManager = require('../functions/mqttManager');
 
 const controller = {};
@@ -314,7 +314,6 @@ controller.all_users = async (req, res) => {
 controller.all_topics = async (req, res) => {
 
 
-
     const data = req.body;
 
     let text = 'SELECT * FROM devices WHERE user_id = $1';
@@ -322,14 +321,16 @@ controller.all_topics = async (req, res) => {
 
     const result = await pool.query(text, values);
 
+    // تبدیل تاریخ‌ها به شمسی
     const rows = result.rows.map(row => {
         if (row.start_date) {
-            row.start_date = moment(row.start_date).format('jYYYY/jMM/jDD'); // مثال: 1404/06/11
+            row.start_date = moment(row.start_date).locale('fa').format('YYYY/MM/DD'); // مثال: 1404/06/11
         }
         return row;
     });
 
     res.json(rows);
+
 
 
 };
