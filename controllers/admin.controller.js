@@ -3,7 +3,7 @@ const pool = require('../config/db');
 const getTodayJalali = require('../config/getDate');
 const client = require('../config/mqtt');
 const bcrypt = require('bcrypt');
-const moment = require('moment-jalaali');
+const moment = require('jalali-moment');
 moment.loadPersian({ dialect: 'persian-modern' });
 const mqttManager = require('../functions/mqttManager');
 
