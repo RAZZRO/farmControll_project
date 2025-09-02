@@ -14,7 +14,4 @@ router.get('/all_users', controller.all_users);
 router.post('/all_topics', controller.all_topics);
 router.post('/send_message', controller.send_message);
 
-
-//router.get('/', adminController.getAdmin);
-
 module.exports = router;

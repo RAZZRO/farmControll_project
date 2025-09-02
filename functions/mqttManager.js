@@ -34,7 +34,6 @@ function publishMessage(user_id, topic, message) {
     });
 }
 
-
 /**
  * Helper: subscribe client to a list of topics.
  */
@@ -56,7 +55,6 @@ async function subscribeTopics(client, user_id, topics = []) {
     const results = await Promise.all(subscribePromises);
     return results;
 }
-
 
 /**
  * Add MQTT user to Mosquitto passwd file and reload service.
@@ -86,8 +84,6 @@ function addMQTTUser(username, password) {
         });
     });
 }
-
-
 
 /**
  * Create a new MQTT client for a user with given topics.
@@ -280,8 +276,6 @@ async function removeUserMqttClient(user_id) {
 
     return true;
 }
-
-
 
 /**
  * Remove a topic subscription from an MQTT client.

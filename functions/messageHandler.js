@@ -87,11 +87,6 @@ class MessageHandler {
         }
     }
 
-
-
-
-
-
     async handleHardwareData(user_id, topic, message) {
         console.log(message);
 
@@ -360,9 +355,6 @@ class MessageHandler {
             client.release();
         }
     }
-
-
-
 
 }
 

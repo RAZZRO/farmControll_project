@@ -6,12 +6,6 @@ const bcrypt = require('bcrypt');
 
 const mqttManager = require('../functions/mqttManager');
 
-
-
-//const jwt = require('jsonwebtoken');
-//const bcrypt = require('bcrypt');
-//const secretKey = 'secretKey';
-
 const controller = {};
 
 controller.send_message = async (req, res) => {
@@ -23,8 +17,7 @@ controller.send_message = async (req, res) => {
     }
 
     return res.status(200).json({ message: 'Message published successfully' });
-}
-
+};
 
 controller.new_user = async (req, res) => {
     const data = req.body;
@@ -84,8 +77,6 @@ controller.new_user = async (req, res) => {
     }
 };
 
-
-
 controller.new_device = async (req, res) => {
     const data = req.body;
     try {
@@ -123,7 +114,6 @@ controller.new_device = async (req, res) => {
     }
 };
 
-
 controller.edit_user = async (req, res) => {
     const data = req.body;
 
@@ -158,7 +148,8 @@ controller.edit_user = async (req, res) => {
         console.error('error in editting', err);
     }
 
-}
+};
+
 controller.edit_device = async (req, res) => {
     const data = req.body;
 
@@ -190,7 +181,7 @@ controller.edit_device = async (req, res) => {
         console.error('error in editting', err);
     }
 
-}
+};
 
 controller.reset_password = async (req, res) => {
     const data = req.body;
@@ -229,7 +220,7 @@ controller.reset_password = async (req, res) => {
         return res.status(500).json({ message: err.message });
     }
 
-}
+};
 
 controller.delete_user = async (req, res) => {
     const { nationalCode, password, identifiers } = req.body;
@@ -273,7 +264,6 @@ controller.delete_user = async (req, res) => {
     }
 };
 
-
 controller.delete_device = async (req, res) => {
     const data = req.body;
 
@@ -301,7 +291,7 @@ controller.delete_device = async (req, res) => {
         res.status(500).json({ message: err })
     }
 
-}
+};
 
 controller.all_users = async (req, res) => {
     console.log("request started!");
@@ -322,17 +312,27 @@ controller.all_users = async (req, res) => {
 
 controller.all_topics = async (req, res) => {
 
+    const moment = require('moment-jalaali');
+    moment.loadPersian({ dialect: 'persian-modern' });
+
     const data = req.body;
 
     let text = 'SELECT * FROM devices WHERE user_id = $1';
-    let values = [
-        data.nationalCode,
-    ];
+    let values = [data.nationalCode];
 
     const result = await pool.query(text, values);
-    res.json(result.rows);
 
-}
+    const rows = result.rows.map(row => {
+        if (row.start_date) {
+            row.start_date = moment(row.start_date).format('jYYYY/jMM/jDD'); // مثال: 1404/06/11
+        }
+        return row;
+    });
+
+    res.json(rows);
+
+
+};
 
 module.exports = controller;
 
