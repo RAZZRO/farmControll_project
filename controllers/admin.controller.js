@@ -298,10 +298,20 @@ controller.all_users = async (req, res) => {
     console.log("request started!");
     try {
         const result = await pool.query('SELECT id, phone, first_name, last_name, start_date FROM users');
-        res.json(result.rows);
 
-        console.log("request copleted");
+        // تبدیل تاریخ میلادی به شمسی
+        const rows = result.rows.map(row => {
+            if (row.start_date) {
+                row.start_date = moment(row.start_date)
+                    .locale('fa')       // فارسی
+                    .format('YYYY/MM/DD'); // فرمت شمسی
+            }
+            return row;
+        });
 
+        res.json(rows);
+
+        console.log("request completed");
     } catch (err) {
         console.error(err.stack);
         res.status(500).json({
