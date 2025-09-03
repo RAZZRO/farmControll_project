@@ -64,7 +64,7 @@ controller.new_user = async (req, res) => {
 
         await client.query('COMMIT');
 
-        return res.status(201).success(true).json({data: {nationalCode, password}});
+        return res.status(200).json({ data: {nationalCode, password}});
 
     } catch (err) {
         await client.query('ROLLBACK');
