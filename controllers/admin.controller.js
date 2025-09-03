@@ -22,7 +22,7 @@ controller.send_message = async (req, res) => {
 
 controller.new_user = async (req, res) => {
     const data = req.body;
-    const [todayJalali, time] = getTodayJalali();
+    const todayGregorian = new Date().toISOString().split('T')[0];
 
     const client = await pool.connect();
 
@@ -39,7 +39,7 @@ controller.new_user = async (req, res) => {
             data.phone,
             data.firstName,
             data.lastName,
-            todayJalali,
+            todayGregorian,
             hashedPassword,
             data.deviceName,
             mqtt_pass,
@@ -64,7 +64,7 @@ controller.new_user = async (req, res) => {
 
         await client.query('COMMIT');
 
-        return res.status(200).json({ nationalCode, password});
+        return res.status(200).json({ nationalCode, password });
 
     } catch (err) {
         await client.query('ROLLBACK');
@@ -88,12 +88,12 @@ controller.new_device = async (req, res) => {
         if (result.rowCount === 0) {
             return res.status(404).json({ message: 'کد ملی در سیستم ثبت نشده است' });
         }
-        const [todayJalali, time] = getTodayJalali();
+        const todayGregorian = new Date().toISOString().split('T')[0];
 
         const query = 'INSERT INTO devices (user_id, start_date,device_name) VALUES ($1,$2,$3) RETURNING *';
         const mqttValues = [
             data.nationalCode,
-            `${todayJalali}`,
+            todayGregorian,
             data.deviceName
         ];
 
@@ -253,7 +253,7 @@ controller.delete_user = async (req, res) => {
 
         await client.query('ROLLBACK');
 
-       // await createMqttClientForNewUser(nationalCode, password, identifiers);
+        // await createMqttClientForNewUser(nationalCode, password, identifiers);
 
         return res.status(500).json({
             error: 'Failed to delete data from database, MQTT client recreated',
