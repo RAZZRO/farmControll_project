@@ -224,7 +224,7 @@ controller.reset_password = async (req, res) => {
 };
 
 controller.delete_user = async (req, res) => {
-    const { nationalCode, password, identifiers } = req.body;
+    const { nationalCode } = req.body;
 
     const client = await pool.connect();
 
@@ -253,7 +253,7 @@ controller.delete_user = async (req, res) => {
 
         await client.query('ROLLBACK');
 
-        await createMqttClientForNewUser(nationalCode, password, identifiers);
+       // await createMqttClientForNewUser(nationalCode, password, identifiers);
 
         return res.status(500).json({
             error: 'Failed to delete data from database, MQTT client recreated',
