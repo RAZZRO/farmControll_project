@@ -85,6 +85,32 @@ function addMQTTUser(username, password) {
     });
 }
 
+function removeFromPasswd(user_id) {
+    return new Promise((resolve) => {
+        console.log(`Removing MQTT user ${user_id}`);
+
+        const cmd = `sudo /usr/bin/mosquitto_passwd -D /etc/mosquitto/passwd ${user_id}`;
+
+        exec(cmd, (error) => {
+            if (error) {
+                console.error(`Error removing MQTT user ${user_id}:`, error.message);
+                return resolve(false);
+            }
+            console.log(`MQTT user ${user_id} removed.`);
+
+            // Reload Mosquitto config
+            exec('kill -HUP $(pidof mosquitto)', (restartError) => {
+                if (restartError) {
+                    console.error(`Error restarting Mosquitto: ${restartError.message}`);
+                    return resolve(false);
+                }
+                console.log(`Mosquitto reloaded after removing user ${user_id}`);
+                resolve(true);
+            });
+        });
+    });
+}
+
 /**
  * Create a new MQTT client for a user with given topics.
  */
