@@ -344,7 +344,7 @@ controller.rtu_information = async (req, res) => {
 
     try {
 
-        const query = 'SELECT * FROM get_latest_device_data($1) AS message';
+        const query = 'SELECT * FROM get_latest_rtu_irrigation_data($1) AS message';
         const mqttValues = [
             data.deviceId
         ];
