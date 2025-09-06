@@ -352,6 +352,8 @@ controller.rtu_information = async (req, res) => {
 
         const result = await pool.query(query, mqttValues);
         console.log(result.rows);
+        res.status(200).json(result.rows);
+
         
 
 
