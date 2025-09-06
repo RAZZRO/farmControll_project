@@ -348,6 +348,8 @@ controller.rtu_information = async (req, res) => {
         const mqttValues = [
             data.deviceId
         ];
+        const result = await pool.query(query, mqttValues);
+
 
         const convertedRows = result.rows.map(device => {
             return {
@@ -368,7 +370,6 @@ controller.rtu_information = async (req, res) => {
         });
 
 
-        const result = await pool.query(query, mqttValues);
         console.log(result.rows);
         res.status(200).json(convertedRows);
 
