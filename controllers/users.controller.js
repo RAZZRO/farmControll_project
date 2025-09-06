@@ -349,12 +349,30 @@ controller.rtu_information = async (req, res) => {
             data.deviceId
         ];
 
+        const convertedRows = result.rows.map(device => {
+            return {
+                ...device,
+                irrigation_start_date: device.irrigation_start_date
+                    ? moment(device.irrigation_start_date).locale('fa').format('jYYYY/jMM/jDD HH:mm')
+                    : null,
+                irrigation_stop_date: device.irrigation_stop_date
+                    ? moment(device.irrigation_stop_date).locale('fa').format('jYYYY/jMM/jDD HH:mm')
+                    : null,
+                irrigation_timestamp: device.irrigation_timestamp
+                    ? moment(device.irrigation_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
+                    : null,
+                rtu_timestamp: device.rtu_timestamp
+                    ? moment(device.rtu_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
+                    : null
+            };
+        });
+
 
         const result = await pool.query(query, mqttValues);
         console.log(result.rows);
-        res.status(200).json(result.rows);
+        res.status(200).json(convertedRows);
 
-        
+
 
 
         // if (result.rowCount > 0) {
