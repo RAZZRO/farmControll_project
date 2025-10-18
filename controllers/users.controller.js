@@ -300,6 +300,9 @@ controller.device_information = async (req, res) => {
 
         const result = await pool.query(query, mqttValues);
 
+        console.log(result.rows);
+        
+
 
         if (result.rowCount > 0) {
             await createLog({
