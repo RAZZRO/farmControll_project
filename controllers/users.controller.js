@@ -296,10 +296,14 @@ controller.device_information = async (req, res) => {
         const mqttValues = [
             data.identifier
         ];
+        console.log(mqttValues);
+        
 
 
         const result = await pool.query(query, mqttValues);
 
+        console.log("test");
+        
         console.log(result.rows);
         
 
