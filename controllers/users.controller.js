@@ -296,6 +296,8 @@ controller.device_information = async (req, res) => {
         const mqttValues = [
             data.identifier
         ];
+        console.log(data);
+        
         console.log(mqttValues);
         
 
