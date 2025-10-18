@@ -295,19 +295,9 @@ controller.device_information = async (req, res) => {
         const query = 'SELECT * FROM get_latest_device_data($1) AS message';
         const mqttValues = [
             data.identifier
-        ];
-        console.log(data);
-        
-        console.log(mqttValues);
-        
-
+        ];     
 
         const result = await pool.query(query, mqttValues);
-
-        console.log("test");
-        
-        console.log(result.rows);
-        
 
 
         if (result.rowCount > 0) {
