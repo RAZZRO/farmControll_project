@@ -295,7 +295,7 @@ controller.device_information = async (req, res) => {
         const query = 'SELECT * FROM get_latest_device_data($1) AS message';
         const mqttValues = [
             data.identifier
-        ];     
+        ];
 
         const result = await pool.query(query, mqttValues);
 
@@ -412,7 +412,7 @@ controller.rtu_information = async (req, res) => {
 
 controller.stack_information = async (req, res) => {
     const data = req.body;
-    
+
     try {
 
         const query = 'SELECT * FROM get_latest_stack_relay_data($1) AS message';
@@ -423,6 +423,12 @@ controller.stack_information = async (req, res) => {
         const convertedRows = result.rows.map(device => {
             return {
                 ...device,
+                stack_stack_id: device.stack_stack_id
+                    ? device.stack_stack_id.replace(/[^0-9]/g, '') || null
+                    : null,
+                relay_relay_id: device.relay_relay_id
+                    ? device.relay_relay_id.replace(/[^0-9]/g, '') || null
+                    : null,
                 stack_timestamp: device.stack_timestamp
                     ? moment(device.stack_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
                     : null,
@@ -431,6 +437,7 @@ controller.stack_information = async (req, res) => {
                     : null,
             };
         });
+
 
         res.status(200).json(convertedRows);
 
