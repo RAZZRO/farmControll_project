@@ -410,6 +410,65 @@ controller.rtu_information = async (req, res) => {
     }
 };
 
+controller.stack_information = async (req, res) => {
+    const data = req.body;
+    
+    try {
+
+        const query = 'SELECT * FROM get_latest_stack_relay_data($1) AS message';
+        const mqttValues = [
+            data.deviceId
+        ];
+        const result = await pool.query(query, mqttValues);
+        const convertedRows = result.rows.map(device => {
+            return {
+                ...device,
+                stack_timestamp: device.stack_timestamp
+                    ? moment(device.stack_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
+                    : null,
+                relay_timestamp: device.relay_timestamp
+                    ? moment(device.relay_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
+                    : null,
+            };
+        });
+
+        res.status(200).json(convertedRows);
+
+        // if (result.rowCount > 0) {
+        //     await createLog({
+        //         logType: 'device information',
+        //         source: 'UserController',
+        //         message: `device information send succesfully`,
+        //         data: { data: result.rows[0] },
+        //         deviceId: data.identifier
+        //     });
+
+        //     res.status(200).json(result.rows[0]);
+
+        // } else {
+        //     await createLog({
+        //         logType: 'device information',
+        //         source: 'UserController',
+        //         message: `data not found`,
+        //         deviceId: data.identifier
+        //     });
+
+        //     res.status(400).json({ message: 'data not found' });
+        // }
+    } catch (err) {
+        console.error(' Database error:', err);
+        // await createLog({
+        //     logType: 'device information',
+        //     source: 'UserController',
+        //     message: `Internal Server Error`,
+        //     data: { error: err.message },
+        //     deviceId: data.identifier
+        // });
+        res.status(500).json({ message: 'Internal Server Error' });
+
+    }
+};
+
 controller.all_topics = async (req, res) => {
     try {
 
