@@ -420,6 +420,8 @@ controller.stack_information = async (req, res) => {
             data.deviceId
         ];
         const result = await pool.query(query, mqttValues);
+        console.log(result.rows);
+        
         const convertedRows = result.rows.map(device => {
             return {
                 ...device,
@@ -438,7 +440,8 @@ controller.stack_information = async (req, res) => {
             };
         });
 
-
+        console.log(convertedRows);
+        
         res.status(200).json(convertedRows);
 
         // if (result.rowCount > 0) {
