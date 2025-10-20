@@ -194,7 +194,7 @@ controller.change_password = async (req, res) => {
                 message: `wrong password`,
                 data: { nationalCode: user.id }
             });
-            return res.status(401).json({ success: false, message: 'wrong password' });
+            return res.status(402).json({ success: false, message: 'wrong password' });
         }
         console.log(data.newPassword);
 
