@@ -7,6 +7,10 @@ const mqttManager = require('../functions/mqttManager');
 
 const controller = {};
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 controller.login = async (req, res) => {
     const { nationalCode, password } = req.body;
 
@@ -337,12 +341,12 @@ controller.device_information = async (req, res) => {
 };
 
 controller.rtu_information = async (req, res) => {
-
     const data = req.body;
-
-
+    const user = req.user;
 
     try {
+        mqttManager.sendRefreshMessage(user.id, data.deviceId, data.timeStampDate, data.timeStampClock);
+        await sleep(2000);
 
         const query = 'SELECT * FROM get_latest_rtu_irrigation_data($1) AS message';
         const mqttValues = [
@@ -413,8 +417,12 @@ controller.rtu_information = async (req, res) => {
 
 controller.stack_information = async (req, res) => {
     const data = req.body;
+    const user = req.user;
+
 
     try {
+        mqttManager.sendRefreshMessage(user.id, data.deviceId, data.timeStampDate, data.timeStampClock);
+        await sleep(2000);
 
         const query = 'SELECT * FROM get_latest_stack_relay_data($1) AS message';
         const mqttValues = [
@@ -480,6 +488,72 @@ controller.stack_information = async (req, res) => {
     }
 };
 
+controller.set_relay = async (req, res) => {
+    const data = req.body;
+    const user = req.user;
+
+
+    try {
+        let message;
+        //const timeStampDate = moment.from(data.timeStampDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
+
+        const payload = {};
+        Object.keys(data).forEach(key => {
+            if (key.startsWith('r')) {
+                payload[key] = data[key];
+            }
+        });
+
+        message = {
+            "sender": "backend",
+            "type": "relay",
+            "payload": payload,
+            "timeStamp": {
+                "date": data.timeStampDate,
+                "clock": data.timeStampClock
+            }
+        };
+
+        const result = await mqttManager.publishMessage(user.id, data.deviceId, JSON.stringify(message));
+        console.log(result);
+
+        res.status(200).json(result);
+
+        // if (result.rowCount > 0) {
+        //     await createLog({
+        //         logType: 'device information',
+        //         source: 'UserController',
+        //         message: `device information send succesfully`,
+        //         data: { data: result.rows[0] },
+        //         deviceId: data.identifier
+        //     });
+
+        //     res.status(200).json(result.rows[0]);
+
+        // } else {
+        //     await createLog({
+        //         logType: 'device information',
+        //         source: 'UserController',
+        //         message: `data not found`,
+        //         deviceId: data.identifier
+        //     });
+
+        //     res.status(400).json({ message: 'data not found' });
+        // }
+    } catch (err) {
+        console.error(' Database error:', err);
+        // await createLog({
+        //     logType: 'device information',
+        //     source: 'UserController',
+        //     message: `Internal Server Error`,
+        //     data: { error: err.message },
+        //     deviceId: data.identifier
+        // });
+        res.status(500).json({ message: 'Internal Server Error' });
+
+    }
+};
+
 controller.set_irrigation = async (req, res) => {
     const data = req.body;
     const user = req.user;
@@ -488,7 +562,7 @@ controller.set_irrigation = async (req, res) => {
     try {
         let message;
         const date = moment.from(data.date, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
-        const timeStampDate = moment.from(data.timeStampDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
+        //const timeStampDate = moment.from(data.timeStampDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
         //const miladiDate = moment.from(shamsiDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
 
 
@@ -505,7 +579,7 @@ controller.set_irrigation = async (req, res) => {
                     "duration": data.duration
                 },
                 "timeStamp": {
-                    "date": timeStampDate,
+                    "date": data.timeStampDate,
                     "clock": data.timeStampClock
                 }
             };
@@ -529,36 +603,70 @@ controller.set_irrigation = async (req, res) => {
 
         const result = await mqttManager.publishMessage(user.id, data.deviceId, JSON.stringify(message));
         console.log(result);
-        
 
 
+        res.status(200).json(result);
 
-        // const query = 'SELECT * FROM get_latest_stack_relay_data($1) AS message';
-        // const mqttValues = [
-        //     message
-        // ];
-        // const result2 = await pool.query(query, mqttValues);
-        // console.log(result.rows);
+        // if (result.rowCount > 0) {
+        //     await createLog({
+        //         logType: 'device information',
+        //         source: 'UserController',
+        //         message: `device information send succesfully`,
+        //         data: { data: result.rows[0] },
+        //         deviceId: data.identifier
+        //     });
 
-        // const convertedRows = result.rows.map(device => {
-        //     return {
-        //         ...device,
-        //         stack_stack_id: device.stack_stack_id
-        //             ? device.stack_stack_id.replace(/[^0-9]/g, '') || null
-        //             : null,
-        //         relay_relay_id: device.relay_relay_id
-        //             ? device.relay_relay_id.replace(/[^0-9]/g, '') || null
-        //             : null,
-        //         stack_timestamp: device.stack_timestamp
-        //             ? moment(device.stack_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
-        //             : null,
-        //         relay_timestamp: device.relay_timestamp
-        //             ? moment(device.relay_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
-        //             : null,
-        //     };
+        //     res.status(200).json(result.rows[0]);
+
+        // } else {
+        //     await createLog({
+        //         logType: 'device information',
+        //         source: 'UserController',
+        //         message: `data not found`,
+        //         deviceId: data.identifier
+        //     });
+
+        //     res.status(400).json({ message: 'data not found' });
+        // }
+    } catch (err) {
+        console.error(' Database error:', err);
+        // await createLog({
+        //     logType: 'device information',
+        //     source: 'UserController',
+        //     message: `Internal Server Error`,
+        //     data: { error: err.message },
+        //     deviceId: data.identifier
         // });
+        res.status(500).json({ message: 'Internal Server Error' });
 
-        // console.log(convertedRows);
+    }
+};
+
+controller.cancell_irrigation = async (req, res) => {
+    const data = req.body;
+    const user = req.user;
+
+
+    try {
+        let message;
+        //const timeStampDate = moment.from(data.timeStampDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
+        //const miladiDate = moment.from(shamsiDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
+
+        message = {
+            "sender": "backend",
+            "type": "cancellirrigation",
+            "payload": {
+                "rule": "single",
+                "rtu": data.rtu
+            },
+            "timeStamp": {
+                "date": data.timeStampDate,
+                "clock": data.timeStampClock
+            }
+        };
+
+        const result = await mqttManager.publishMessage(user.id, data.deviceId, JSON.stringify(message));
+        console.log(result);
 
         res.status(200).json(result);
 
@@ -614,6 +722,22 @@ controller.all_topics = async (req, res) => {
                     .format('YYYY/MM/DD')
             };
         });
+
+        const currentDate = moment().format('YYYY-MM-DD');
+        const currentClock = moment().format('HH:mm:ss');
+        for (const device of result.rows) {
+            // صبر 1 ثانیه بین ارسال‌ها (اختیاری ولی مفید برای جلوگیری از overload)
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            await mqttManager.sendRefreshMessage(
+                user.id,
+                device.deviceid,       // توجه کن که نام ستون درست باشد (deviceid یا device_id)
+                currentDate,
+                currentClock
+            );
+
+            console.log(`📨 Refresh sent for device ${device.deviceid}`);
+        }
 
         res.json(
             convertedRows

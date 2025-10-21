@@ -12,6 +12,8 @@ router.post('/device_information', auth, userController.device_information);
 router.post('/rtu_information', auth, userController.rtu_information);
 router.post('/stack_information', auth, userController.stack_information);
 router.post('/set_irrigation', auth, userController.set_irrigation);
+router.post('/cancell_irrigation', auth, userController.cancell_irrigation);
+router.post('/set_relay', auth, userController.set_relay);
 //router.post('/device_information', userController.device_information);
 
 router.get('/all_topics', auth, userController.all_topics);

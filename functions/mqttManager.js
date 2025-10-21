@@ -34,6 +34,36 @@ function publishMessage(user_id, topic, message) {
     });
 }
 
+async function sendRefreshMessage(user_id, topic, date, clock) {
+    const message = {
+        "sender": "backend",
+        "type": "refresh",
+        "payload": {},
+        "timeStamp":
+        {
+            "date": date,
+            "clock": clock
+        }
+    };
+
+    try {
+
+        const result = await mqttManager.publishMessage(
+            user_id,
+            topic,
+            JSON.stringify(message)
+        );
+
+        console.log('📨 Refresh message sent:', result);
+        return true;
+    } catch (err) {
+        console.error('❌ Error sending refresh message:', err);
+        return false;
+    }
+}
+
+
+
 /**
  * Helper: subscribe client to a list of topics.
  */
@@ -331,6 +361,7 @@ function removeTopicFromMqttClient(user_id, identifier) {
 
 
 module.exports = {
+    sendRefreshMessage,
     initAllUserMqttClients,
     createMqttClientForNewUser,
     removeUserMqttClient,
