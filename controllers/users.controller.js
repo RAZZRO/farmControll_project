@@ -731,7 +731,7 @@ controller.all_topics = async (req, res) => {
 
             await mqttManager.sendRefreshMessage(
                 user.id,
-                device.deviceid,       // توجه کن که نام ستون درست باشد (deviceid یا device_id)
+                device.identifier,       
                 currentDate,
                 currentClock
             );
