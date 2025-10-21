@@ -11,9 +11,10 @@ router.post('/edit_device', auth, userController.edit_device);
 router.post('/device_information', auth, userController.device_information);
 router.post('/rtu_information', auth, userController.rtu_information);
 router.post('/stack_information', auth, userController.stack_information);
+router.post('/set_irrigation', auth, userController.set_irrigation);
 //router.post('/device_information', userController.device_information);
 
-router.get('/all_topics',auth, userController.all_topics);
+router.get('/all_topics', auth, userController.all_topics);
 router.get('/user_information', auth, userController.user_information);
 //router.post('/refresh_token', userController.refreshToken); 
 

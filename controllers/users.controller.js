@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const moment = require('jalali-moment');
 const { createLog } = require('../functions/createLog');
+const mqttManager = require('../functions/mqttManager');
 
 const controller = {};
 
@@ -421,7 +422,7 @@ controller.stack_information = async (req, res) => {
         ];
         const result = await pool.query(query, mqttValues);
         console.log(result.rows);
-        
+
         const convertedRows = result.rows.map(device => {
             return {
                 ...device,
@@ -441,8 +442,125 @@ controller.stack_information = async (req, res) => {
         });
 
         console.log(convertedRows);
-        
+
         res.status(200).json(convertedRows);
+
+        // if (result.rowCount > 0) {
+        //     await createLog({
+        //         logType: 'device information',
+        //         source: 'UserController',
+        //         message: `device information send succesfully`,
+        //         data: { data: result.rows[0] },
+        //         deviceId: data.identifier
+        //     });
+
+        //     res.status(200).json(result.rows[0]);
+
+        // } else {
+        //     await createLog({
+        //         logType: 'device information',
+        //         source: 'UserController',
+        //         message: `data not found`,
+        //         deviceId: data.identifier
+        //     });
+
+        //     res.status(400).json({ message: 'data not found' });
+        // }
+    } catch (err) {
+        console.error(' Database error:', err);
+        // await createLog({
+        //     logType: 'device information',
+        //     source: 'UserController',
+        //     message: `Internal Server Error`,
+        //     data: { error: err.message },
+        //     deviceId: data.identifier
+        // });
+        res.status(500).json({ message: 'Internal Server Error' });
+
+    }
+};
+
+controller.set_irrigation = async (req, res) => {
+    const data = req.body;
+    const user = req.user;
+
+
+    try {
+        const message = '';
+        const date = moment.from(data.date, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
+        const timeStampDate = moment.from(data.timeStampDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
+        //const miladiDate = moment.from(shamsiDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
+
+
+        if (data.rule == 'single') {
+            message = {
+                "sender": "backend",
+                "type": "irrigation",
+                "payload": {
+                    "mode": "set",
+                    "rule": "single",
+                    "rtu": data.rtu,
+                    "date": date,
+                    "clock": data.clock,
+                    "duration": data.duration
+                },
+                "timeStamp": {
+                    "date": timeStampDate,
+                    "clock": data.timeStampClock
+                }
+            };
+        } else {
+            message = {
+                "sender": "backend",
+                "type": "irrigation",
+                "payload": {
+                    "mode": "set",
+                    "rule": "global",
+                    "date": date,
+                    "clock": data.clock,
+                    "duration": data.duration
+                },
+                "timeStamp": {
+                    "date": timeStampDate,
+                    "clock": data.timeStampClock
+                }
+            };
+        }
+
+        const result = await mqttManager.publishMessage(user.id, data.deviceId, message);
+        console.log(result);
+        
+
+
+
+        // const query = 'SELECT * FROM get_latest_stack_relay_data($1) AS message';
+        // const mqttValues = [
+        //     message
+        // ];
+        // const result2 = await pool.query(query, mqttValues);
+        // console.log(result.rows);
+
+        // const convertedRows = result.rows.map(device => {
+        //     return {
+        //         ...device,
+        //         stack_stack_id: device.stack_stack_id
+        //             ? device.stack_stack_id.replace(/[^0-9]/g, '') || null
+        //             : null,
+        //         relay_relay_id: device.relay_relay_id
+        //             ? device.relay_relay_id.replace(/[^0-9]/g, '') || null
+        //             : null,
+        //         stack_timestamp: device.stack_timestamp
+        //             ? moment(device.stack_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
+        //             : null,
+        //         relay_timestamp: device.relay_timestamp
+        //             ? moment(device.relay_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
+        //             : null,
+        //     };
+        // });
+
+        // console.log(convertedRows);
+
+        res.status(200).json(result);
 
         // if (result.rowCount > 0) {
         //     await createLog({

@@ -1,6 +1,6 @@
 const pool = require('../config/db');
 const connectMqtt = require('../config/mqtt');
-const getTodayJalali = require('../config/getDate');
+//const getTodayJalali = require('../config/getDate');
 const { exec } = require('child_process');
 
 const MessageHandler = require('./messageHandler');
