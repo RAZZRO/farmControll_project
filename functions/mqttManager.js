@@ -48,7 +48,7 @@ async function sendRefreshMessage(user_id, topic, date, clock) {
 
     try {
 
-        const result = await mqttManager.publishMessage(
+        const result = await publishMessage(
             user_id,
             topic,
             JSON.stringify(message)

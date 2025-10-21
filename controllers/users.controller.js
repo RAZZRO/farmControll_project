@@ -729,7 +729,7 @@ controller.all_topics = async (req, res) => {
             console.log(device.identifier);
             
             // صبر 1 ثانیه بین ارسال‌ها (اختیاری ولی مفید برای جلوگیری از overload)
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await sleep(100);
 
             await mqttManager.sendRefreshMessage(
                 user.id,
@@ -738,7 +738,7 @@ controller.all_topics = async (req, res) => {
                 currentClock
             );
 
-            console.log(`📨 Refresh sent for device ${device.deviceid}`);
+            console.log(`📨 Refresh sent for device ${device.identifier}`);
         }
 
         res.json(
