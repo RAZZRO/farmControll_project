@@ -527,7 +527,7 @@ controller.set_irrigation = async (req, res) => {
             };
         }
 
-        const result = await mqttManager.publishMessage(user.id, data.deviceId, message);
+        const result = await mqttManager.publishMessage(user.id, data.deviceId, JSON.stringify(message));
         console.log(result);
         
 
