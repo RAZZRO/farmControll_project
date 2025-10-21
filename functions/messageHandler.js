@@ -1,4 +1,6 @@
 const { default: handle } = require("mqtt/lib/handlers/index");
+const moment = require('jalali-moment');
+
 
 
 class MessageHandler {
@@ -7,6 +9,7 @@ class MessageHandler {
     }
 
     async handle(user_id, topic, rawMessage) {
+
 
         let message;
         try {
@@ -41,6 +44,10 @@ class MessageHandler {
                 case "alarm":
                     await this.logMessage('Alarm data received and received', message, topic);
                     await this.handleHardwareAlarm(user_id, topic, message);
+                    break;
+
+                case "synchronization":
+                    await this.handlesynchronization(user_id, topic);
                     break;
 
                 default:
@@ -353,6 +360,68 @@ class MessageHandler {
             console.error(`Error inserting Alarm message for topic ${topic}:`, err);
         } finally {
             client.release();
+        }
+    }
+
+    async handlesynchronization(user_id, topic) {
+
+        const miladiDate = moment().format('YYYY-MM-DD');
+        const shamsiClock = moment().locale('fa').format('HH:mm:ss');
+        const message = {
+            "date": miladiDate,
+            "clock": shamsiClock
+        };
+
+        await this.logMessage('synchronization received and received', message, topic);
+
+        try {
+
+           const body = {
+                "sender": "backend",
+                "type": "synchronization",
+                "payload": {},
+                "timeStamp": {
+                    "date": miladiDate,
+                    "clock": shamsiClock
+                }
+            };
+
+            const result = await mqttManager.publishMessage(user_id, topic, JSON.stringify(body));
+            console.log(result);
+
+
+            // if (result.rowCount > 0) {
+            //     await createLog({
+            //         logType: 'device information',
+            //         source: 'UserController',
+            //         message: `device information send succesfully`,
+            //         data: { data: result.rows[0] },
+            //         deviceId: data.identifier
+            //     });
+
+            //     res.status(200).json(result.rows[0]);
+
+            // } else {
+            //     await createLog({
+            //         logType: 'device information',
+            //         source: 'UserController',
+            //         message: `data not found`,
+            //         deviceId: data.identifier
+            //     });
+
+            //     res.status(400).json({ message: 'data not found' });
+            // }
+        } catch (err) {
+            console.error(' Database error:', err);
+            // await createLog({
+            //     logType: 'device information',
+            //     source: 'UserController',
+            //     message: `Internal Server Error`,
+            //     data: { error: err.message },
+            //     deviceId: data.identifier
+            // });
+            //res.status(500).json({ message: 'Internal Server Error' });
+
         }
     }
 
