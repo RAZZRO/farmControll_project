@@ -1,6 +1,6 @@
 const { default: handle } = require("mqtt/lib/handlers/index");
 const moment = require('jalali-moment');
-const mqttManager = require('./mqttManager');
+//const mqttManager = require('./mqttManager');
 
 
 
@@ -370,6 +370,7 @@ class MessageHandler {
     }
 
     async handlesynchronization(user_id, topic) {
+
         console.log("start");
 
 
@@ -395,8 +396,11 @@ class MessageHandler {
                     "clock": shamsiClock
                 }
             };
+            const { publishMessage } = require('./mqttManager');
+           // await publishMessage(user.id, deviceId, JSON.stringify(message));
 
-            const result = await mqttManager.publishMessage(user_id, topic, JSON.stringify(body));
+
+            const result = await publishMessage(user_id, topic, JSON.stringify(body));
             console.log(result);
 
 
