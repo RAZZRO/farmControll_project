@@ -724,7 +724,7 @@ controller.all_topics = async (req, res) => {
         });
 
         const currentDate = moment().format('YYYY-MM-DD');
-        const currentClock = moment().format('HH:mm:ss');
+const currentClock = moment().locale('fa').format('HH:mm:ss');
         for (const device of result.rows) {
             console.log(device.identifier);
             
