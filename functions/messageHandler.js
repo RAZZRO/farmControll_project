@@ -20,6 +20,8 @@ class MessageHandler {
         }
 
         const { sender, type } = message;
+        console.log(sender);
+        
         if (sender === "hardWare") {
             switch (type) {
                 case "data":
