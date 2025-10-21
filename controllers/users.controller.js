@@ -561,6 +561,8 @@ controller.set_irrigation = async (req, res) => {
 
     try {
         let message;
+        console.log(data.date);
+        
         const date = moment.from(data.date, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
         //const timeStampDate = moment.from(data.timeStampDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
         //const miladiDate = moment.from(shamsiDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
