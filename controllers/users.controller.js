@@ -724,16 +724,16 @@ controller.all_topics = async (req, res) => {
         });
 
         const currentDate = moment().format('YYYY-MM-DD');
-const currentClock = moment().locale('fa').format('HH:mm:ss');
+        const currentClock = moment().locale('fa').utcOffset(3.5 * 60).format('HH:mm:ss');
         for (const device of result.rows) {
             console.log(device.identifier);
-            
+
             // صبر 1 ثانیه بین ارسال‌ها (اختیاری ولی مفید برای جلوگیری از overload)
             await sleep(100);
 
             await mqttManager.sendRefreshMessage(
                 user.id,
-                device.identifier,       
+                device.identifier,
                 currentDate,
                 currentClock
             );
