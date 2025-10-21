@@ -564,6 +564,8 @@ controller.set_irrigation = async (req, res) => {
         const date = moment.from(data.date, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
         //const timeStampDate = moment.from(data.timeStampDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
         //const miladiDate = moment.from(shamsiDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
+        console.log(data);
+        
 
 
         if (data.rule == 'single') {
@@ -595,7 +597,7 @@ controller.set_irrigation = async (req, res) => {
                     "duration": data.duration
                 },
                 "timeStamp": {
-                    "date": timeStampDate,
+                    "date": data.timeStampDate,
                     "clock": data.timeStampClock
                 }
             };
