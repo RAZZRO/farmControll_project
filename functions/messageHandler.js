@@ -47,6 +47,8 @@ class MessageHandler {
                     break;
 
                 case "synchronization":
+                    console.log("synchronization");
+                    
                     await this.handlesynchronization(user_id, topic);
                     break;
 
@@ -364,6 +366,8 @@ class MessageHandler {
     }
 
     async handlesynchronization(user_id, topic) {
+        console.log("start");
+        
 
         const miladiDate = moment().format('YYYY-MM-DD');
         const shamsiClock = moment().locale('fa').format('HH:mm:ss');
@@ -373,6 +377,8 @@ class MessageHandler {
         };
 
         await this.logMessage('synchronization received and received', message, topic);
+        console.log("log saved");
+        
 
         try {
 
