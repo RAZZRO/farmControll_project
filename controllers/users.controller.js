@@ -726,6 +726,8 @@ controller.all_topics = async (req, res) => {
         const currentDate = moment().format('YYYY-MM-DD');
         const currentClock = moment().format('HH:mm:ss');
         for (const device of result.rows) {
+            console.log(device.identifier);
+            
             // صبر 1 ثانیه بین ارسال‌ها (اختیاری ولی مفید برای جلوگیری از overload)
             await new Promise(resolve => setTimeout(resolve, 100));
 
