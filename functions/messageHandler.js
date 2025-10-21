@@ -1,6 +1,6 @@
 const { default: handle } = require("mqtt/lib/handlers/index");
 const moment = require('jalali-moment');
-const mqttManager = require('../functions/mqttManager');
+const mqttManager = require('./mqttManager');
 
 
 
@@ -23,7 +23,7 @@ class MessageHandler {
 
         const { sender, type } = message;
         console.log(sender);
-        
+
         if (sender === "hardWare") {
             switch (type) {
                 case "data":
@@ -52,7 +52,7 @@ class MessageHandler {
 
                 case "synchronization":
                     console.log("synchronization");
-                    
+
                     await this.handlesynchronization(user_id, topic);
                     break;
 
@@ -371,10 +371,10 @@ class MessageHandler {
 
     async handlesynchronization(user_id, topic) {
         console.log("start");
-        
+
 
         const miladiDate = moment().format('YYYY-MM-DD');
-        const shamsiClock = moment().locale('fa').format('HH:mm:ss');
+        const shamsiClock = moment().locale('fa').utcOffset(3.5 * 60).format('HH:mm:ss');
         const message = {
             "date": miladiDate,
             "clock": shamsiClock
@@ -382,11 +382,11 @@ class MessageHandler {
 
         await this.logMessage('synchronization received and received', message, topic);
         console.log("log saved");
-        
+
 
         try {
 
-           const body = {
+            const body = {
                 "sender": "backend",
                 "type": "synchronization",
                 "payload": {},
