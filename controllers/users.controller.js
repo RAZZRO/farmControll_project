@@ -431,35 +431,52 @@ controller.stack_information = async (req, res) => {
         const result = await pool.query(query, mqttValues);
         console.log(result.rows);
 
-        const received = result.rows[0].get_latest_stack_relay_data;
-        // یا بسته به اسم فیلد، اگر نام ستون چیز دیگری بود آن را بگذارید
+        const dbResult = result.rows;   // داده خام دیتابیس
 
-        const stacks = received.stacks.map(stack => ({
-            ...stack,
-            stack_stack_id: stack.stack_stack_id
-                ? stack.stack_stack_id.replace(/[^0-9]/g, '') || null
-                : null,
-            stack_timestamp: stack.stack_timestamp
-                ? moment(stack.stack_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
-                : null,
-        }));
+        if (!dbResult || !dbResult[0] || !dbResult[0].message) {
+            return res.status(500).json({
+                success: false,
+                message: "Invalid database response"
+            });
+        }
 
-        const relays = received.relays.map(relay => ({
-            ...relay,
-            relay_relay_id: relay.relay_relay_id
-                ? relay.relay_relay_id.replace(/[^0-9]/g, '') || null
-                : null,
-            relay_timestamp: relay.relay_timestamp
-                ? moment(relay.relay_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
-                : null,
-        }));
+        const { stacks, relays } = dbResult[0].message;
 
-        const convertedData = { stacks, relays };
+        // اگر آرایه نبودند، خالی‌شون کن
+        const stackList = Array.isArray(stacks) ? stacks : [];
+        const relayList = Array.isArray(relays) ? relays : [];
+
+        // حالا تبدیل نهایی
+        const convertedRows = {
+            stacks: stackList.map(s => ({
+                stack_id: s.stack_id,
+                stack_value: s.stack_value,
+                stack_status: s.stack_status,
+                stack_timestamp: s.stack_timestamp
+                    ? moment(s.stack_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
+                    : null
+            })),
+            relays: relayList.map(r => ({
+                relay_id: r.relay_id,
+                relay_value: r.relay_value,
+                relay_status: r.relay_status,
+                relay_timestamp: r.relay_timestamp
+                    ? moment(r.relay_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
+                    : null
+            }))
+        };
+
+        // return res.json({
+        //     success: true,
+        //     data: convertedRows
+        // });
 
 
-        console.log(convertedData);
 
-        res.status(200).json(convertedData);
+        console.log(convertedRows);
+
+        res.status(200).json({ data: convertedRows });
+
 
         // if (result.rowCount > 0) {
         //     await createLog({
