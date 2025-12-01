@@ -431,10 +431,10 @@ controller.stack_information = async (req, res) => {
         const result = await pool.query(query, mqttValues);
         console.log(result.rows);
 
-        const data = result.rows[0].get_latest_stack_relay_data;
+        const received = result.rows[0].get_latest_stack_relay_data;
         // یا بسته به اسم فیلد، اگر نام ستون چیز دیگری بود آن را بگذارید
 
-        const stacks = data.stacks.map(stack => ({
+        const stacks = received.stacks.map(stack => ({
             ...stack,
             stack_stack_id: stack.stack_stack_id
                 ? stack.stack_stack_id.replace(/[^0-9]/g, '') || null
@@ -444,7 +444,7 @@ controller.stack_information = async (req, res) => {
                 : null,
         }));
 
-        const relays = data.relays.map(relay => ({
+        const relays = received.relays.map(relay => ({
             ...relay,
             relay_relay_id: relay.relay_relay_id
                 ? relay.relay_relay_id.replace(/[^0-9]/g, '') || null
