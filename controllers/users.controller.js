@@ -597,47 +597,70 @@ controller.set_irrigation = async (req, res) => {
         let message;
         console.log(data.date);
 
-        const date = moment.from(data.date, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
-        //const timeStampDate = moment.from(data.timeStampDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
-        //const miladiDate = moment.from(shamsiDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
-        console.log(data);
-
-
-
-        if (data.rule == 'single') {
-            message = {
-                "sender": "backend",
-                "type": "irrigation",
-                "payload": {
-                    "mode": "set",
-                    "rule": "single",
-                    "rtu": data.rtu,
-                    "date": date,
-                    "clock": data.clock,
-                    "duration": data.duration
-                },
-                "timeStamp": {
-                    "date": data.timeStampDate,
-                    "clock": data.timeStampClock
-                }
-            };
-        } else {
-            message = {
-                "sender": "backend",
-                "type": "irrigation",
-                "payload": {
-                    "mode": "set",
-                    "rule": "global",
-                    "date": date,
-                    "clock": data.clock,
-                    "duration": data.duration
-                },
-                "timeStamp": {
-                    "date": data.timeStampDate,
-                    "clock": data.timeStampClock
-                }
-            };
+        let date = null;
+        if (data.date && data.date.trim() !== "") {
+            date = moment.from(data.date, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
         }
+
+        let payload = {
+            mode: "set",
+            rule: data.rule,
+            clock: data.clock,
+            duration: data.duration
+        };
+
+        if (data.rule === 'single') {
+            payload.rtu = data.rtu;
+        }
+
+        if (date) {
+            payload.date = date;
+        }
+
+        message = {
+            sender: "backend",
+            type: "irrigation",
+            payload,
+            timeStamp: {
+                date: data.timeStampDate,
+                clock: data.timeStampClock
+            }
+        };
+
+        // if (data.rule == 'single') {
+        //     message = {
+        //         "sender": "backend",
+        //         "type": "irrigation",
+        //         "payload": {
+        //             "mode": "set",
+        //             "rule": "single",
+        //             "rtu": data.rtu,
+        //             "date": date,
+        //             "clock": data.clock,
+        //             "duration": data.duration
+        //         },
+        //         "timeStamp": {
+        //             "date": data.timeStampDate,
+        //             "clock": data.timeStampClock
+        //         }
+        //     };
+        // } else {
+        //     message = {
+        //         "sender": "backend",
+        //         "type": "irrigation",
+        //         "payload": {
+        //             "mode": "set",
+        //             "rule": "global",
+        //             "date": date,
+        //             "clock": data.clock,
+        //             "duration": data.duration
+        //         },
+        //         "timeStamp": {
+        //             "date": data.timeStampDate,
+        //             "clock": data.timeStampClock
+        //         }
+        //     };
+        // }
 
         const result = await mqttManager.publishMessage(user.id, data.deviceId, JSON.stringify(message));
         console.log(result);
