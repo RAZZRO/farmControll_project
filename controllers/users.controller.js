@@ -463,6 +463,7 @@ controller.stack_information = async (req, res) => {
             })),
             relays: relayList.map(r => ({
                 relay_id: r.relay_id,
+                relay_device_id: r.relay_device_id,
                 relay_relay_id: r.relay_relay_id
                     ? r.relay_relay_id.replace(/[^0-9]/g, '') || null
                     : null,
@@ -483,7 +484,7 @@ controller.stack_information = async (req, res) => {
 
         console.log(convertedRows);
 
-        res.status(200).json(convertedRows );
+        res.status(200).json(convertedRows);
 
 
         // if (result.rowCount > 0) {
