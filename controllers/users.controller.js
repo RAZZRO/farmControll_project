@@ -483,7 +483,7 @@ controller.stack_information = async (req, res) => {
 
         console.log(convertedRows);
 
-        res.status(200).json({ data: convertedRows });
+        res.status(200).json(convertedRows );
 
 
         // if (result.rowCount > 0) {
