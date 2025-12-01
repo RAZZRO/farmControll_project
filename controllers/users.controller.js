@@ -605,6 +605,7 @@ controller.set_irrigation = async (req, res) => {
         let payload = {
             mode: "set",
             rule: data.rule,
+            message: data.message,
             clock: data.clock,
             duration: data.duration
         };
