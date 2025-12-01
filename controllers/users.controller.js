@@ -431,27 +431,35 @@ controller.stack_information = async (req, res) => {
         const result = await pool.query(query, mqttValues);
         console.log(result.rows);
 
-        const convertedRows = result.rows.map(device => {
-            return {
-                ...device,
-                stack_stack_id: device.stack_stack_id
-                    ? device.stack_stack_id.replace(/[^0-9]/g, '') || null
-                    : null,
-                relay_relay_id: device.relay_relay_id
-                    ? device.relay_relay_id.replace(/[^0-9]/g, '') || null
-                    : null,
-                stack_timestamp: device.stack_timestamp
-                    ? moment(device.stack_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
-                    : null,
-                relay_timestamp: device.relay_timestamp
-                    ? moment(device.relay_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
-                    : null,
-            };
-        });
+        const data = result.rows[0].get_latest_stack_relay_data;
+        // یا بسته به اسم فیلد، اگر نام ستون چیز دیگری بود آن را بگذارید
 
-        console.log(convertedRows);
+        const stacks = data.stacks.map(stack => ({
+            ...stack,
+            stack_stack_id: stack.stack_stack_id
+                ? stack.stack_stack_id.replace(/[^0-9]/g, '') || null
+                : null,
+            stack_timestamp: stack.stack_timestamp
+                ? moment(stack.stack_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
+                : null,
+        }));
 
-        res.status(200).json(convertedRows);
+        const relays = data.relays.map(relay => ({
+            ...relay,
+            relay_relay_id: relay.relay_relay_id
+                ? relay.relay_relay_id.replace(/[^0-9]/g, '') || null
+                : null,
+            relay_timestamp: relay.relay_timestamp
+                ? moment(relay.relay_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
+                : null,
+        }));
+
+        const convertedData = { stacks, relays };
+
+
+        console.log(convertedData);
+
+        res.status(200).json(convertedData);
 
         // if (result.rowCount > 0) {
         //     await createLog({
@@ -562,12 +570,12 @@ controller.set_irrigation = async (req, res) => {
     try {
         let message;
         console.log(data.date);
-        
+
         const date = moment.from(data.date, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
         //const timeStampDate = moment.from(data.timeStampDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
         //const miladiDate = moment.from(shamsiDate, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
         console.log(data);
-        
+
 
 
         if (data.rule == 'single') {
