@@ -450,16 +450,24 @@ controller.stack_information = async (req, res) => {
         const convertedRows = {
             stacks: stackList.map(s => ({
                 stack_id: s.stack_id,
-                stack_value: s.stack_value,
-                stack_status: s.stack_status,
+                stack_device_id: s.stack_device_id,
+                stack_stack_id: s.stack_stack_id
+                    ? s.stack_stack_id.replace(/[^0-9]/g, '') || null
+                    : null,
+                stack_w_level: s.stack_w_level,
+                stack_electricity_level: s.stack_electricity_level,
+                stack_ph_level: s.stack_ph_level,
                 stack_timestamp: s.stack_timestamp
                     ? moment(s.stack_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
                     : null
             })),
             relays: relayList.map(r => ({
                 relay_id: r.relay_id,
-                relay_value: r.relay_value,
-                relay_status: r.relay_status,
+                relay_relay_id: r.relay_relay_id
+                    ? r.relay_relay_id.replace(/[^0-9]/g, '') || null
+                    : null,
+                relay_state: r.relay_state,
+                relay_message_status: r.relay_message_status,
                 relay_timestamp: r.relay_timestamp
                     ? moment(r.relay_timestamp).locale('fa').format('jYYYY/jMM/jDD HH:mm')
                     : null
