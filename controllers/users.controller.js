@@ -802,8 +802,13 @@ function waitForIrrigationAck(deviceId, commandId, timeoutMs) {
     return new Promise((resolve) => {
         const start = Date.now();
 
+
+        console.log(`📨 Refresh sent for device `);
+
+
+
         const interval = setInterval(async () => {
-            const res = await db.query(`
+            const res = await pool.query(`
                 SELECT 1
                 FROM irrigation_data
                 WHERE device_id = $1
