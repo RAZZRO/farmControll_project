@@ -332,7 +332,7 @@ class MessageHandler {
         console.log("diff");
         console.log(diff >= 30 * 60 * 1000);
           
-        return diff <= 30 * 60 * 1000;
+        return diff >= 30 * 60 * 1000;
     }
 
     async getDeviceRtus(deviceId, client) {
