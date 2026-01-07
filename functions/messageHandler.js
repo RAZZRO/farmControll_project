@@ -218,7 +218,7 @@ class MessageHandler {
             data.stop_date || null,
             data.duration || null,
             ts,
-            command_id || null
+            commandId || null
         ]);
     }
 
