@@ -9,7 +9,7 @@ class MessageHandler {
 
     async handle(user_id, topic, rawMessage) {
 
-        
+
         let message;
 
         try {
@@ -149,7 +149,7 @@ class MessageHandler {
     async handleIrrigation(deviceId, payload, ts) {
         const client = await this.db.connect();
         const rtus = await this.getDeviceRtus(deviceId, client);
-        const global = payload.global;
+        const { global, status, command_id } = payload;
         const globalMode = global?.mode;
 
         try {
@@ -163,8 +163,12 @@ class MessageHandler {
                         deviceId,
                         rtu,
                         global,
+                        status,
+
                         payload.status,
-                        ts
+                        ts,
+                        command_id
+
                     );
                 }
             } else {
@@ -178,8 +182,10 @@ class MessageHandler {
                         deviceId,
                         rtu_id,
                         data,
+                        status,
                         payload.status,
-                        ts
+                        ts,
+                        command_id
                     );
                 }
             }
@@ -193,7 +199,7 @@ class MessageHandler {
         }
     }
 
-    async insertIrrigation(client, deviceId, rtu_id, data, status, ts) {
+    async insertIrrigation(client, deviceId, rtu_id, data, status, ts, commandId) {
         await client.query(`
             INSERT INTO irrigation_data (
                 device_id, rtu_id, mode, status,
@@ -208,7 +214,7 @@ class MessageHandler {
             data.stop_date || null,
             data.duration || null,
             ts,
-            data.command_id || null
+            command_id || null
         ]);
     }
 
