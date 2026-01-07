@@ -337,7 +337,7 @@ class MessageHandler {
 
     async getDeviceRtus(deviceId, client) {
         const res = await client.query(
-            'SELECT rtu_id FROM device_rtu WHERE device_id=$1',
+            'SELECT rtu_id FROM rtu_data WHERE device_id=$1',
             [deviceId]
         );
         return res.rows.map(r => r.rtu_id);

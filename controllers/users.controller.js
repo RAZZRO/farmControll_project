@@ -628,7 +628,7 @@ controller.set_irrigation = async (req, res) => {
         const success = await waitForIrrigationAck(
             data.deviceId,
             commandId,
-            10000 // 10 seconds timeout
+            20000 // 20 seconds timeout
         );
 
         if (success) {
