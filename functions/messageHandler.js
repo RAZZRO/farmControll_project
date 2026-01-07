@@ -334,11 +334,12 @@ class MessageHandler {
     isMessageTimeValid(ts) {
         const diff = Math.abs(Date.now() - ts.getTime());
         console.log(Date.now());
+        console.log(Date.now().getTime);
         console.log(ts.getTime());
         console.log("diff");
-        console.log(diff >= 30 * 60 * 1000);
+        console.log(diff <= 30 * 60 * 1000);
 
-        return diff >= 30 * 60 * 1000;
+        return diff <= 30 * 60 * 1000;
     }
 
     async getDeviceRtus(deviceId, client) {
