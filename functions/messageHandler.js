@@ -13,7 +13,7 @@ class MessageHandler {
         let message;
 
         try {
-            const normalized = normalizeHardwareJson(rawMessage);
+            const normalized = this.normalizeHardwareJson(rawMessage);
             message = JSON.parse(normalized);
         } catch (err) {
             console.error('Invalid hardware JSON:', err);
@@ -358,6 +358,7 @@ class MessageHandler {
         await publishMessage(user_id, topic, JSON.stringify(body));
     }
 
+
     normalizeHardwareJson(raw) {
         let str = raw.toString().trim();
 
@@ -378,7 +379,6 @@ class MessageHandler {
         return str;
     }
 
-
     validateMessage(msg) {
         return msg.sender && msg.type && msg.payload;
     }
@@ -386,4 +386,5 @@ class MessageHandler {
 
 }
 
-module.exports = MessageHandler;
+
+    module.exports = MessageHandler;
