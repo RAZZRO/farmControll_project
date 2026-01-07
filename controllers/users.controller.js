@@ -592,106 +592,87 @@ controller.set_irrigation = async (req, res) => {
     const data = req.body;
     const user = req.user;
 
+    const commandId = uuidv4();
+
+    let date = null;
+    if (data.date && data.date.trim() !== "") {
+        date = moment.from(data.date, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
+    }
+    const payload = {
+        mode: "set",
+        rule: data.rule,
+        message: data.message,
+        clock: data.clock,
+        duration: data.duration,
+        command_id: commandId
+    };
+
+    if (data.rule === 'single') payload.rtu = data.rtu;
+    if (date) payload.date = date;
+
+    const message = {
+        sender: "backend",
+        type: "irrigation",
+        payload,
+        timeStamp: {
+            date: data.timeStampDate,
+            clock: data.timeStampClock
+        }
+    };
 
     try {
-        let message;
-        console.log(data.date);
 
-        let date = null;
-        if (data.date && data.date.trim() !== "") {
-            date = moment.from(data.date, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
+
+        await mqttManager.publishMessage(user.id, data.deviceId, JSON.stringify(message));
+
+        const success = await waitForIrrigationAck(
+            data.deviceId,
+            commandId,
+            10000 // 10 seconds timeout
+        );
+
+        if (success) {
+            // if (result.rowCount > 0) {
+            //     await createLog({
+            //         logType: 'device information',
+            //         source: 'UserController',
+            //         message: `device information send succesfully`,
+            //         data: { data: result.rows[0] },
+            //         deviceId: data.identifier
+            //     });
+
+            //     res.status(200).json(result.rows[0]);
+
+            // } else {
+            //     await createLog({
+            //         logType: 'device information',
+            //         source: 'UserController',
+            //         message: `data not found`,
+            //         deviceId: data.identifier
+            //     });
+
+            //     res.status(400).json({ message: 'data not found' });
+            // }
+            return res.status(200).json({
+                success: true,
+                message: "Irrigation command executed successfully"
+            });
+
         }
 
-        let payload = {
-            mode: "set",
-            rule: data.rule,
-            message: data.message,
-            clock: data.clock,
-            duration: data.duration
-        };
+        return res.status(408).json({
+            // await createLog({
+            //     logType: 'device information',
+            //     source: 'UserController',
+            //     message: `Internal Server Error`,
+            //     data: { error: err.message },
+            //     deviceId: data.identifier
+            // });
+            success: false,
+            message: "No response from device"
+        });
 
-        if (data.rule === 'single') {
-            payload.rtu = data.rtu;
-        }
-
-        if (date) {
-            payload.date = date;
-        }
-
-        message = {
-            sender: "backend",
-            type: "irrigation",
-            payload,
-            timeStamp: {
-                date: data.timeStampDate,
-                clock: data.timeStampClock
-            }
-        };
-
-        // if (data.rule == 'single') {
-        //     message = {
-        //         "sender": "backend",
-        //         "type": "irrigation",
-        //         "payload": {
-        //             "mode": "set",
-        //             "rule": "single",
-        //             "rtu": data.rtu,
-        //             "date": date,
-        //             "clock": data.clock,
-        //             "duration": data.duration
-        //         },
-        //         "timeStamp": {
-        //             "date": data.timeStampDate,
-        //             "clock": data.timeStampClock
-        //         }
-        //     };
-        // } else {
-        //     message = {
-        //         "sender": "backend",
-        //         "type": "irrigation",
-        //         "payload": {
-        //             "mode": "set",
-        //             "rule": "global",
-        //             "date": date,
-        //             "clock": data.clock,
-        //             "duration": data.duration
-        //         },
-        //         "timeStamp": {
-        //             "date": data.timeStampDate,
-        //             "clock": data.timeStampClock
-        //         }
-        //     };
-        // }
-
-        const result = await mqttManager.publishMessage(user.id, data.deviceId, JSON.stringify(message));
-        console.log(result);
-
-
-        res.status(200).json(result);
-
-        // if (result.rowCount > 0) {
-        //     await createLog({
-        //         logType: 'device information',
-        //         source: 'UserController',
-        //         message: `device information send succesfully`,
-        //         data: { data: result.rows[0] },
-        //         deviceId: data.identifier
-        //     });
-
-        //     res.status(200).json(result.rows[0]);
-
-        // } else {
-        //     await createLog({
-        //         logType: 'device information',
-        //         source: 'UserController',
-        //         message: `data not found`,
-        //         deviceId: data.identifier
-        //     });
-
-        //     res.status(400).json({ message: 'data not found' });
-        // }
     } catch (err) {
-        console.error(' Database error:', err);
         // await createLog({
         //     logType: 'device information',
         //     source: 'UserController',
@@ -699,9 +680,13 @@ controller.set_irrigation = async (req, res) => {
         //     data: { error: err.message },
         //     deviceId: data.identifier
         // });
+        console.error(err);
         res.status(500).json({ message: 'Internal Server Error' });
-
     }
+
+
+
+
 };
 
 controller.cancell_irrigation = async (req, res) => {
@@ -812,5 +797,33 @@ controller.all_topics = async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 };
+
+function waitForIrrigationAck(deviceId, commandId, timeoutMs) {
+    return new Promise((resolve) => {
+        const start = Date.now();
+
+        const interval = setInterval(async () => {
+            const res = await db.query(`
+                SELECT 1
+                FROM irrigation_data
+                WHERE device_id = $1
+                  AND command_id = $2
+                  AND status = 'response'
+                LIMIT 1
+            `, [deviceId, commandId]);
+
+            if (res.rowCount > 0) {
+                clearInterval(interval);
+                resolve(true);
+            }
+
+            if (Date.now() - start > timeoutMs) {
+                clearInterval(interval);
+                resolve(false);
+            }
+        }, 500); // polling every 500ms
+    });
+}
+
 
 module.exports = controller;
