@@ -208,7 +208,7 @@ class MessageHandler {
             INSERT INTO irrigation_data (
                 device_id, rtu_id, mode, status,
                 start_date, stop_date, duration, timestamp, command_id
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
         `, [
             deviceId,
             rtu_id,
