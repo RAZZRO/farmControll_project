@@ -21,6 +21,8 @@ class MessageHandler {
         }
 
         const { sender, type, payload, timeStamp } = message;
+        console.log(timeStamp);
+        
 
         if (sender !== 'hardWare') {
             await this.logMessage(
@@ -325,6 +327,10 @@ class MessageHandler {
 
     isMessageTimeValid(ts) {
         const diff = Math.abs(Date.now() - ts.getTime());
+        console.log(Date.now());
+        console.log(ts.getTime());
+        console.log(diff <= 30 * 60 * 1000);
+          
         return diff <= 30 * 60 * 1000;
     }
 
@@ -346,6 +352,8 @@ class MessageHandler {
     async sendSynchronization(user_id, topic) {
         const date = moment().format('YYYY-MM-DD');
         const clock = moment().locale('fa').utcOffset(210).format('HH:mm:ss');
+        console.log(clock);
+        
 
         const body = {
             sender: 'backend',
