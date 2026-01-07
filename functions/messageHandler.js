@@ -1,4 +1,4 @@
-//const moment = require('jalali-moment');
+const moment = require('jalali-moment');
 
 class MessageHandler {
     constructor(db) {
@@ -13,11 +13,13 @@ class MessageHandler {
         let message;
 
         try {
-            message = JSON.parse(rawMessage.toString());
+            const normalized = normalizeHardwareJson(rawMessage);
+            message = JSON.parse(normalized);
         } catch (err) {
-            console.error("JSON parse error:", err);
+            console.error('Invalid hardware JSON:', err);
             return;
         }
+
         const { sender, type, payload, timeStamp } = message;
 
         if (sender !== 'hardWare') {
@@ -356,9 +358,32 @@ class MessageHandler {
         await publishMessage(user_id, topic, JSON.stringify(body));
     }
 
+    normalizeHardwareJson(raw) {
+        let str = raw.toString().trim();
+
+        // اگر دوبار stringify شده باشد
+        if (str.startsWith('"') && str.endsWith('"')) {
+            str = str.slice(1, -1);
+        }
+
+        // اصلاح \" → "
+        str = str.replace(/\\"/g, '"');
+
+        // اصلاح \"
+        str = str.replace(/\\+"/g, '"');
+
+        // اصلاح موارد خاص stop_date":\"
+        str = str.replace(/":\\+"/g, '":"');
+
+        return str;
+    }
+
+
     validateMessage(msg) {
         return msg.sender && msg.type && msg.payload;
     }
+
+
 }
 
 module.exports = MessageHandler;
