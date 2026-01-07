@@ -55,37 +55,37 @@ class MessageHandler {
 
         switch (type) {
             case "refresh":
-                await this.logMessage('refresh data received', message, topic);
+              //  await this.logMessage('refresh data received', message, topic);
 
                 await this.handleRefresh(user_id, topic, payload, timeStamp);
                 break;
 
             case "irrigation":
-                await this.logMessage('irrigation data received', message, topic);
+                //await this.logMessage('irrigation data received', message, topic);
 
                 await this.handleIrrigation(topic, payload, timeStamp);
                 break;
 
             case "relay":
-                await this.logMessage('Relay data received', message, topic);
+            //    await this.logMessage('Relay data received', message, topic);
 
                 await this.handleRelay(topic, payload, timeStamp);
                 break;
 
             case "alarm":
-                await this.logMessage('Alarm data received', message, topic);
+              //  await this.logMessage('Alarm data received', message, topic);
 
                 await this.handleAlarm(topic, payload, timeStamp);
                 break;
 
             case "synchronization":
-                await this.logMessage('Synchronization received', message, topic);
+             //   await this.logMessage('Synchronization received', message, topic);
 
                 await this.sendSynchronization(user_id, topic);
                 break;
 
             default:
-                await this.logMessage(client, 'error', topic, `No handler for sender=${sender}, type=${type}`, message, topic);
+       //         await this.logMessage(client, 'error', topic, `No handler for sender=${sender}, type=${type}`, message, topic);
 
                 console.warn(`No handler for sender=${sender}, type=${type}`);
                 break;
