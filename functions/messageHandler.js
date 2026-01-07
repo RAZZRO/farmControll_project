@@ -22,7 +22,7 @@ class MessageHandler {
 
         const { sender, type, payload, timeStamp } = message;
         console.log(timeStamp);
-        
+
 
         if (sender !== 'hardWare') {
             await this.logMessage(
@@ -55,7 +55,7 @@ class MessageHandler {
 
         switch (type) {
             case "refresh":
-              //  await this.logMessage('refresh data received', message, topic);
+                //  await this.logMessage('refresh data received', message, topic);
 
                 await this.handleRefresh(user_id, topic, payload, timeStamp);
                 break;
@@ -67,25 +67,25 @@ class MessageHandler {
                 break;
 
             case "relay":
-            //    await this.logMessage('Relay data received', message, topic);
+                //    await this.logMessage('Relay data received', message, topic);
 
                 await this.handleRelay(topic, payload, timeStamp);
                 break;
 
             case "alarm":
-              //  await this.logMessage('Alarm data received', message, topic);
+                //  await this.logMessage('Alarm data received', message, topic);
 
                 await this.handleAlarm(topic, payload, timeStamp);
                 break;
 
             case "synchronization":
-             //   await this.logMessage('Synchronization received', message, topic);
+                //   await this.logMessage('Synchronization received', message, topic);
 
                 await this.sendSynchronization(user_id, topic);
                 break;
 
             default:
-       //         await this.logMessage(client, 'error', topic, `No handler for sender=${sender}, type=${type}`, message, topic);
+                //         await this.logMessage(client, 'error', topic, `No handler for sender=${sender}, type=${type}`, message, topic);
 
                 console.warn(`No handler for sender=${sender}, type=${type}`);
                 break;
@@ -168,8 +168,6 @@ class MessageHandler {
                         rtu,
                         global,
                         status,
-
-                        payload.status,
                         ts,
                         command_id
 
@@ -187,7 +185,6 @@ class MessageHandler {
                         rtu_id,
                         data,
                         status,
-                        payload.status,
                         ts,
                         command_id
                     );
@@ -204,6 +201,15 @@ class MessageHandler {
     }
 
     async insertIrrigation(client, deviceId, rtu_id, data, status, ts, commandId) {
+        console.log({
+            deviceId,
+            rtu_id,
+            mode: data.mode,
+            status,
+            ts,
+            commandId
+        });
+
         await client.query(`
             INSERT INTO irrigation_data (
                 device_id, rtu_id, mode, status,
@@ -331,7 +337,7 @@ class MessageHandler {
         console.log(ts.getTime());
         console.log("diff");
         console.log(diff >= 30 * 60 * 1000);
-          
+
         return diff >= 30 * 60 * 1000;
     }
 
@@ -354,7 +360,7 @@ class MessageHandler {
         const date = moment().format('YYYY-MM-DD');
         const clock = moment().locale('fa').utcOffset(210).format('HH:mm:ss');
         console.log(clock);
-        
+
 
         const body = {
             sender: 'backend',
@@ -396,4 +402,4 @@ class MessageHandler {
 }
 
 
-    module.exports = MessageHandler;
+module.exports = MessageHandler;
