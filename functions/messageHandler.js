@@ -334,8 +334,12 @@ class MessageHandler {
     isMessageTimeValid(ts) {
         const diff = Math.abs(Date.now() - ts.getTime());
         console.log(Date.now());
-        console.log(Date.now().getTime);
+        console.log(`Date.now().getTime ${Date.now().getTime}`);
+        console.log(`Date.now() - ts.getTime() ${Math.abs(Date.now() - ts.getTime())}`);
+        
         console.log(ts.getTime());
+        console.log(`multiple:30 * 60 * 1000= ${30 * 60 * 1000}`);
+        
         console.log("diff");
         console.log(diff <= 30 * 60 * 1000);
 
