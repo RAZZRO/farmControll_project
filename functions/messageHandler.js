@@ -350,12 +350,12 @@ class MessageHandler {
         const now = moment().utcOffset(210);
 
         // زمان دریافتی از سخت افزار
-        const messageTime = hardwareTime.getTime();
+        const messageTime = moment(hardwareTime);
 
         const diff = Math.abs(now.diff(messageTime, 'minutes', true));
 
         console.log("Now:", now.format("YYYY/MM/DD HH:mm:ss"));
-        console.log("Message:", hardwareTime.toISOString());
+        console.log("Message:", messageTime.format("YYYY/MM/DD HH:mm:ss"));
         console.log("Difference:", diff);
 
         return diff <= 30;
