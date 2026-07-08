@@ -355,7 +355,11 @@ class MessageHandler {
             return false;
         }
 
-        const now = moment().utcOffset(210);
+        // const now = moment().utcOffset(210);
+        const now = moment(
+            "2026/07/08 00:00:00",
+            "YYYY/MM/DD HH:mm:ss"
+        ).utcOffset(210, true);
         const diff = Math.abs(now.diff(messageTime, 'minutes', true));
 
         console.log("Now:", now.format("YYYY/MM/DD HH:mm:ss"));
