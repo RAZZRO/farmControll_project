@@ -21,8 +21,6 @@ class MessageHandler {
         }
 
         const { sender, type, payload, timeStamp } = message;
-        console.log(timeStamp);
-
 
         if (sender !== 'hardWare') {
             await this.logMessage(
@@ -364,7 +362,6 @@ class MessageHandler {
     async sendSynchronization(user_id, topic) {
         const date = moment().format('YYYY-MM-DD');
         const clock = moment().locale('fa').utcOffset(210).format('HH:mm:ss');
-        console.log(clock);
 
 
         const body = {

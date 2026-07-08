@@ -78,7 +78,6 @@ controller.edit_device = async (req, res) => {
         const result = await pool.query(text, values);
 
         if (result.rowCount === 0) {
-            console.log('device not found');
             await createLog({
                 logType: 'edit device',
                 source: 'UserController',
@@ -88,7 +87,6 @@ controller.edit_device = async (req, res) => {
             });
             res.status(404).json({ success: false, message: "device not found" });
         } else {
-            console.log('edit done succesfully');
             await createLog({
                 logType: 'edit device',
                 source: 'UserController',
@@ -118,12 +116,10 @@ controller.edit_device = async (req, res) => {
 
 controller.edit_user = async (req, res) => {
     const data = req.body;
-    console.log(data);
 
 
     try {
         const user = req.user;
-        console.log(user);
 
 
         let text = 'UPDATE users SET  phone = $2 , first_name = $3 , last_name =  $4  WHERE id = $1 RETURNING id';
@@ -135,12 +131,9 @@ controller.edit_user = async (req, res) => {
             data.lastName
 
         ];
-        console.log('Query:', text);
-        console.log('Values:', values);
 
 
         const result = await pool.query(text, values);
-        console.log(result);
         if (result.rowCount > 0) {
             await createLog({
                 logType: 'edit user',
@@ -175,7 +168,6 @@ controller.change_password = async (req, res) => {
     const data = req.body;
 
     try {
-        console.log("start changing password");
 
         const user = req.user;
         const passText = 'SELECT password FROM users WHERE id = $1';
@@ -185,11 +177,9 @@ controller.change_password = async (req, res) => {
 
 
         const password = getPass.rows[0].password;
-        console.log(getPass.rows[0].password);
 
 
         const isMatch = await bcrypt.compare(data.oldPassword, password);
-        console.log(isMatch);
 
 
         if (!isMatch) {
@@ -201,10 +191,8 @@ controller.change_password = async (req, res) => {
             });
             return res.status(402).json({ success: false, message: 'wrong password' });
         }
-        console.log(data.newPassword);
 
         const hashedPassword = await bcrypt.hash(data.newPassword, 10);
-        console.log(hashedPassword);
 
         let text = 'UPDATE users SET  password = $2   WHERE id = $1 RETURNING id';
 
@@ -212,12 +200,8 @@ controller.change_password = async (req, res) => {
             user.id,
             hashedPassword
         ];
-        console.log('Query:', text);
-        console.log('Values:', values);
-
 
         const result = await pool.query(text, values);
-        console.log(result);
         if (result.rowCount > 0) {
             await createLog({
                 logType: 'change password',
@@ -374,7 +358,6 @@ controller.rtu_information = async (req, res) => {
         });
 
 
-        console.log(result.rows);
         res.status(200).json(convertedRows);
 
 
@@ -429,7 +412,6 @@ controller.stack_information = async (req, res) => {
             data.deviceId
         ];
         const result = await pool.query(query, mqttValues);
-        console.log(result.rows);
 
         const dbResult = result.rows;   // داده خام دیتابیس
 
@@ -482,7 +464,6 @@ controller.stack_information = async (req, res) => {
 
 
 
-        console.log(convertedRows);
 
         res.status(200).json(convertedRows);
 
@@ -549,7 +530,6 @@ controller.set_relay = async (req, res) => {
         };
 
         const result = await mqttManager.publishMessage(user.id, data.deviceId, JSON.stringify(message));
-        console.log(result);
 
         res.status(200).json(result);
 
@@ -591,8 +571,6 @@ controller.set_relay = async (req, res) => {
 controller.set_irrigation = async (req, res) => {
     const data = req.body;
     const user = req.user;
-
-    console.log(req.body);
     
 
     //const commandId = uuidv4();
@@ -717,7 +695,6 @@ controller.cancell_irrigation = async (req, res) => {
         };
 
         const result = await mqttManager.publishMessage(user.id, data.deviceId, JSON.stringify(message));
-        console.log(result);
 
         res.status(200).json(result);
 
@@ -777,7 +754,6 @@ controller.all_topics = async (req, res) => {
         const currentDate = moment().format('YYYY-MM-DD');
         const currentClock = moment().locale('fa').utcOffset(3.5 * 60).format('HH:mm:ss');
         for (const device of result.rows) {
-            console.log(device.identifier);
 
             // صبر 1 ثانیه بین ارسال‌ها (اختیاری ولی مفید برای جلوگیری از overload)
             await sleep(100);
@@ -789,7 +765,6 @@ controller.all_topics = async (req, res) => {
                 currentClock
             );
 
-            console.log(`📨 Refresh sent for device ${device.identifier}`);
         }
 
         res.json(
@@ -806,8 +781,6 @@ function waitForIrrigationAck(deviceId, commandId, timeoutMs) {
     return new Promise((resolve) => {
         const start = Date.now();
 
-
-        console.log(`📨 Refresh sent for device `);
 
 
 
