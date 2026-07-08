@@ -33,9 +33,9 @@ class MessageHandler {
         if (!this.validateMessage(message)) return;
 
 
-        const ts = this.parseTimestamp(timeStamp);
+        //const ts = this.parseTimestamp(timeStamp);
 
-        if (ts && !this.isMessageTimeValid(ts)) {
+        if (!this.isMessageTimeValid(timeStamp)) {
             await this.logMessage(
                 'message rejected (timestamp)',
                 message,
@@ -326,7 +326,7 @@ class MessageHandler {
     /* ===================== HELPERS ===================== */
     parseTimestamp(ts) {
         if (!ts)
-            return false;
+            return moment().utcOffset(210);
 
         return moment(
             ts,
@@ -351,12 +351,17 @@ class MessageHandler {
 
     isMessageTimeValid(messageTime) {
 
+        if (messageTime == "") {
+            return false;
+        }
+        const ts = this.parseTimestamp(timeStamp);
+
         const now = moment().utcOffset(210);
 
-        const diff = Math.abs(now.diff(messageTime, 'minutes', true));
+        const diff = Math.abs(now.diff(ts, 'minutes', true));
 
         console.log("Now:", now.format("YYYY/MM/DD HH:mm:ss"));
-        console.log("Message:", messageTime.format("YYYY/MM/DD HH:mm:ss"));
+        console.log("Message:", ts.format("YYYY/MM/DD HH:mm:ss"));
         console.log("Difference:", diff);
 
         return diff <= 30;
