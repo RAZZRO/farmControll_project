@@ -592,6 +592,9 @@ controller.set_irrigation = async (req, res) => {
     const data = req.body;
     const user = req.user;
 
+    console.log(req.body);
+    
+
     //const commandId = uuidv4();
     const commandId = "f1e0be6c-4f63-45f5-afce-6b4db72f4ee1";
 
