@@ -355,7 +355,7 @@ class MessageHandler {
         const diff = Math.abs(now.diff(messageTime, 'minutes', true));
 
         console.log("Now:", now.format("YYYY/MM/DD HH:mm:ss"));
-        console.log("Message:", messageTime);
+        console.log("Message:", messageTime.toISOString());
         console.log("Difference:", diff);
 
         return diff <= 30;
