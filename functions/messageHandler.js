@@ -325,8 +325,13 @@ class MessageHandler {
 
     /* ===================== HELPERS ===================== */
     parseTimestamp(ts) {
-        if (!ts) return new Date();
-        return new Date(ts.replace(/\//g, '-'));
+        if (!ts)
+            return moment().utcOffset(210);
+
+        return moment(
+            ts,
+            "YYYY/MM/DD HH:mm:ss"
+        ).utcOffset(210, true);
     }
 
     // isMessageTimeValid(ts) {
@@ -344,13 +349,9 @@ class MessageHandler {
     //     return diff <= 30 * 60 * 1000;
     // }
 
-    isMessageTimeValid(hardwareTime) {
+    isMessageTimeValid(messageTime) {
 
-        // زمان فعلی سرور بر اساس ساعت ایران
         const now = moment().utcOffset(210);
-
-        // زمان دریافتی از سخت افزار
-        const messageTime = moment(hardwareTime);
 
         const diff = Math.abs(now.diff(messageTime, 'minutes', true));
 
