@@ -573,8 +573,8 @@ controller.set_irrigation = async (req, res) => {
     const user = req.user;
     
 
-    //const commandId = uuidv4();
-    const commandId = "f1e0be6c-4f63-45f5-afce-6b4db72f4ee1";
+    const commandId = uuidv4();
+    //const commandId = "f1e0be6c-4f63-45f5-afce-6b4db72f4ee1";
 
     let date = null;
     if (data.date && data.date.trim() !== "") {
