@@ -334,27 +334,35 @@ class MessageHandler {
     //     console.log(Date.now());
     //     console.log(`Date.now().getTime ${Date.now().getTime}`);
     //     console.log(`Date.now() - ts.getTime() ${Math.abs(Date.now() - ts.getTime())}`);
-        
+
     //     console.log(ts.getTime());
     //     console.log(`multiple:30 * 60 * 1000= ${30 * 60 * 1000}`);
-        
+
     //     console.log("diff");
     //     console.log(diff <= 30 * 60 * 1000);
 
     //     return diff <= 30 * 60 * 1000;
     // }
 
-    isMessageTimeValid(ts) {
-    const now = new Date();
-    const diff = Math.abs(now.getTime() - ts.getTime());
+    isMessageTimeValid(hardwareTime) {
 
-    console.log("Now:", now.toISOString());
-    console.log("Message:", ts.toISOString());
-    console.log("Difference(ms):", diff);
-    console.log("Difference(min):", diff / 60000);
+        // زمان فعلی سرور بر اساس ساعت ایران
+        const now = moment().utcOffset(210);
 
-    return diff <= 30 * 60 * 1000;
-}
+        // زمان دریافتی از سخت افزار
+        const messageTime = moment(
+            hardwareTime,
+            "YYYY/MM/DD HH:mm:ss"
+        ).utcOffset(210);
+
+        const diff = Math.abs(now.diff(messageTime, 'minutes', true));
+
+        console.log("Now:", now.format("YYYY/MM/DD HH:mm:ss"));
+        console.log("Message:", messageTime.format("YYYY/MM/DD HH:mm:ss"));
+        console.log("Difference:", diff);
+
+        return diff <= 30;
+    }
 
     async getDeviceRtus(deviceId, client) {
         const res = await client.query(
