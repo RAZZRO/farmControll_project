@@ -329,20 +329,32 @@ class MessageHandler {
         return new Date(ts.replace(/\//g, '-'));
     }
 
-    isMessageTimeValid(ts) {
-        const diff = Math.abs(Date.now() - ts.getTime());
-        console.log(Date.now());
-        console.log(`Date.now().getTime ${Date.now().getTime}`);
-        console.log(`Date.now() - ts.getTime() ${Math.abs(Date.now() - ts.getTime())}`);
+    // isMessageTimeValid(ts) {
+    //     const diff = Math.abs(Date.now() - ts.getTime());
+    //     console.log(Date.now());
+    //     console.log(`Date.now().getTime ${Date.now().getTime}`);
+    //     console.log(`Date.now() - ts.getTime() ${Math.abs(Date.now() - ts.getTime())}`);
         
-        console.log(ts.getTime());
-        console.log(`multiple:30 * 60 * 1000= ${30 * 60 * 1000}`);
+    //     console.log(ts.getTime());
+    //     console.log(`multiple:30 * 60 * 1000= ${30 * 60 * 1000}`);
         
-        console.log("diff");
-        console.log(diff <= 30 * 60 * 1000);
+    //     console.log("diff");
+    //     console.log(diff <= 30 * 60 * 1000);
 
-        return diff <= 30 * 60 * 1000;
-    }
+    //     return diff <= 30 * 60 * 1000;
+    // }
+
+    isMessageTimeValid(ts) {
+    const now = new Date();
+    const diff = Math.abs(now.getTime() - ts.getTime());
+
+    console.log("Now:", now.toISOString());
+    console.log("Message:", ts.toISOString());
+    console.log("Difference(ms):", diff);
+    console.log("Difference(min):", diff / 60000);
+
+    return diff <= 30 * 60 * 1000;
+}
 
     async getDeviceRtus(deviceId, client) {
         const res = await client.query(
