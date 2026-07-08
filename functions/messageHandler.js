@@ -35,7 +35,7 @@ class MessageHandler {
 
         const ts = this.parseTimestamp(timeStamp);
 
-        if (!this.isMessageTimeValid(ts)) {
+        if (!this.isMessageTimeValid(ts)&& ts) {
             await this.logMessage(
                 'message rejected (timestamp)',
                 message,
@@ -326,7 +326,7 @@ class MessageHandler {
     /* ===================== HELPERS ===================== */
     parseTimestamp(ts) {
         if (!ts)
-            return null;
+            return false;
 
         return moment(
             ts,
