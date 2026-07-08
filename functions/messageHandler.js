@@ -326,7 +326,7 @@ class MessageHandler {
     /* ===================== HELPERS ===================== */
     parseTimestamp(ts) {
         if (!ts)
-            return moment().utcOffset(210);
+            return null;
 
         return moment(
             ts,
