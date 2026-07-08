@@ -44,6 +44,9 @@ class MessageHandler {
             await this.sendSynchronization(user_id, topic);
             return;
         }
+
+        console.log("Message:", ts.format("YYYY/MM/DD HH:mm:ss"));
+
         await this.routeMessage(user_id, topic, type, payload, ts, sender);
     }
 
@@ -149,6 +152,9 @@ class MessageHandler {
 
     /* ===================== IRRIGATION ===================== */
     async handleIrrigation(deviceId, payload, ts) {
+        console.log("time in the handleIrrigation is:", ts.format("YYYY/MM/DD HH:mm:ss"));
+        // console.log("Message:", messageTime.format("YYYY/MM/DD HH:mm:ss"));
+
         const client = await this.db.connect();
         const rtus = await this.getDeviceRtus(deviceId, client);
         const { global, status, command_id } = payload;
