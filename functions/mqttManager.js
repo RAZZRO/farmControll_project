@@ -17,9 +17,13 @@ function publishMessage(user_id, topic, message) {
         console.error(`No MQTT client found for user ${user_id}`);
         return false;
     }
-    console.log("*****************test*********************");
+    console.log("*************************************************test*********************");
     console.log(userClient);
+
+    console.log('****************************************************************userClient.topics');
     console.log(userClient.topics);
+    
+    console.log('******************************************userClient.topics.includes(topic)**********************');
     console.log(userClient.topics.includes(topic));
 
     if (!userClient.topics.includes(topic)) {
