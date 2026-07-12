@@ -13,6 +13,8 @@ function sleep(ms) {
 
 controller.login = async (req, res) => {
     const { nationalCode, password } = req.body;
+    console.log("logging in");
+    
 
     try {
         const text = 'SELECT * FROM users WHERE id = $1';
@@ -577,7 +579,6 @@ controller.set_irrigation = async (req, res) => {
     //const commandId = "f1e0be6c-4f63-45f5-afce-6b4db72f4ee1";
 
     let date = null;
-    log("data.date && data.date.trim() ",data.date && data.date.trim() !== "" )
     if (data.date && data.date.trim() !== "") {
         date = moment.from(data.date, 'fa', 'YYYY/MM/DD').format('YYYY-MM-DD');
     }
